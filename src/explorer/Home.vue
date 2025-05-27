@@ -12,6 +12,16 @@ import { WebSocketService } from "@/services/websocket";
 const router = useRouter();
 const searchQuery = ref("");
 const wsService = ref<WebSocketService | null>(null);
+
+const formatVerifierName = (verifier: string) => {
+    const parts = verifier.split('-');
+    const name = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+    if (parts.length > 1) {
+        return `${name} v${parts[1]}`;
+    }
+    return name;
+};
+
 const stats = ref<null | {
     total_transactions: number;
     txs_last_day: number;
@@ -20,6 +30,8 @@ const stats = ref<null | {
     graph_tx_volume: [number, number][];
     graph_block_time: [number, number][];
 }>(null);
+
+const proofStats = ref<null | Array<{ verifier: string; proof_count: number }>>(null);
 
 const consensusInfo = ref<null | { validators: string[] }>(null);
 const fetchConsensusInfo = async () => {
@@ -32,9 +44,15 @@ const fetchStats = async () => {
     stats.value = await response.json();
 };
 
+const fetchProofStats = async () => {
+    const response = await fetch(getNetworkIndexerApiUrl(network.value) + `/v1/indexer/stats/proofs?no_cache=${Date.now()}`);
+    proofStats.value = await response.json();
+};
+
 onMounted(() => {
     fetchConsensusInfo();
     fetchStats();
+    fetchProofStats();
     wsService.value = new WebSocketService(getNetworkWebSocketUrl(network.value) + "/ws");
     wsService.value.connect();
 });
@@ -254,6 +272,27 @@ const blockTimeChartData = computed(() => ({
                             <div>
                                 Validators: <span class="text-secondary">{{ consensusInfo?.validators?.length || 1 }}</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20">
+                        <div class="flex items-center gap-3 mb-2">
+                            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                                />
+                            </svg>
+                            <h3 class="text-sm font-medium text-neutral uppercase">Proof Stats</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <div v-for="stat in proofStats" :key="stat.verifier" class="flex items-center justify-between text-sm">
+                                <span class="text-neutral">{{ formatVerifierName(stat.verifier) }}</span>
+                                <span class="text-secondary font-medium">{{ stat.proof_count }}</span>
+                            </div>
+                            <div v-if="!proofStats" class="text-sm text-neutral">Loading...</div>
                         </div>
                     </div>
                 </div>
