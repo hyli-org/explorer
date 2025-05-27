@@ -29,6 +29,7 @@ const stats = ref<null | {
     contracts_last_day: number;
     graph_tx_volume: [number, number][];
     graph_block_time: [number, number][];
+    peak_txs: [number, number];
 }>(null);
 
 const proofStats = ref<null | Array<{ verifier: string; proof_count: number }>>(null);
@@ -293,6 +294,28 @@ const blockTimeChartData = computed(() => ({
                                 <span class="text-secondary font-medium">{{ stat.proof_count }}</span>
                             </div>
                             <div v-if="!proofStats" class="text-sm text-neutral">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20">
+                        <div class="flex items-center gap-3 mb-2">
+                            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                                />
+                            </svg>
+                            <h3 class="text-sm font-medium text-neutral uppercase">Peak Txs in 1 min (past 24h)</h3>
+                        </div>
+                        <p class="text-3xl font-display text-primary mb-2">
+                            {{ stats?.peak_txs?.[1] || "0" }}
+                        </p>
+                        <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
+                            <div>
+                                Achieved: <span class="text-secondary">{{ stats?.peak_txs?.[0] ? getTimeAgo(new Date(stats.peak_txs[0] * 1000).toISOString()) : "Never" }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
