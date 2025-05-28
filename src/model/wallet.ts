@@ -1,8 +1,12 @@
 import { BorshSchema, borshDeserialize } from "borsher";
 
-export type AuthMethod = { Password: { hash: string } };
+export type AuthMethod = {
+    Password: {
+        hash: string;
+    };
+};
 
-export type WalletAction =
+export type IdentityAction =
     | {
           RegisterIdentity: {
               account: string;
@@ -12,8 +16,28 @@ export type WalletAction =
       }
     | {
           VerifyIdentity: {
-              nonce: number;
               account: string;
+              nonce: number;
+          };
+      }
+    | {
+          AddSessionKey: {
+              account: string;
+              key: string;
+              expiration_date: number;
+              whitelist: string[];
+          };
+      }
+    | {
+          RemoveSessionKey: {
+              account: string;
+              key: string;
+          };
+      }
+    | {
+          UseSessionKey: {
+              account: string;
+              nonce: number;
           };
       }
     | {
@@ -37,11 +61,8 @@ export type WalletAction =
               nonce: number;
           };
       };
-//
-// Serialisation
-//
 
-export const deserializeWalletAction = (data: number[]): WalletAction => {
+export const deserializeWalletAction = (data: number[]): IdentityAction => {
     return borshDeserialize(schema, new Uint8Array(data));
 };
 
@@ -62,7 +83,7 @@ const schema = BorshSchema.Enum({
     AddSessionKey: BorshSchema.Struct({
         account: BorshSchema.String,
         key: BorshSchema.String,
-        expiration: BorshSchema.u128,
+        expiration_date: BorshSchema.u128,
         whitelist: BorshSchema.Vec(BorshSchema.String),
     }),
     RemoveSessionKey: BorshSchema.Struct({
