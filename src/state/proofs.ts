@@ -9,6 +9,7 @@ export type ProofInfo = {
     block_hash: string;
     index: number;
     timestamp: number;
+    proof_outputs: [string, number, number, any][];
 };
 
 export class ProofStore {
@@ -30,11 +31,18 @@ export class ProofStore {
     }
 
     async load(tx_hash: string) {
-        if (this.data[tx_hash]) {
+        // In this function we want to fully load data
+        if (tx_hash in this.data && "proof_outputs" in this.data[tx_hash]) {
             return;
         }
-        const response = await fetch(`${getNetworkIndexerApiUrl(this.network)}/v1/indexer/proof/hash/${tx_hash}?no_cache=${Date.now()}`);
-        let item = await response.json();
-        this.data[item.tx_hash] = item;
+        try {
+            const response = await fetch(
+                `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/proof/hash/${tx_hash}?no_cache=${Date.now()}`,
+            );
+            let item = await response.json();
+            this.data[item.tx_hash] = item;
+        } catch (_) {
+            return;
+        }
     }
 }

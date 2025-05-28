@@ -34,6 +34,7 @@ export type TransactionInfo = {
     parent_dp_hash: string;
     timestamp: number;
     index?: number;
+    identity?: string;
     blobs?: BlobInfo[];
     events?: EventInfo[];
 };
@@ -112,15 +113,19 @@ export class TransactionStore {
     async load(tx_hash: string) {
         let item: TransactionInfo;
 
-        if (this.data[tx_hash]) {
+        if (tx_hash in this.data) {
             item = this.data[tx_hash];
         } else {
-            const response = await fetch(
-                `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transaction/hash/${tx_hash}?no_cache=${Date.now()}`,
-            );
-            item = await response.json();
-            this.data[item.tx_hash] = item;
-            this.updateTransactionsByBlock(item);
+            try {
+                const response = await fetch(
+                    `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transaction/hash/${tx_hash}?no_cache=${Date.now()}`,
+                );
+                item = await response.json();
+                this.data[item.tx_hash] = item;
+                this.updateTransactionsByBlock(item);
+            } catch (error) {
+                return;
+            }
         }
 
         // Load blobs and events if they are not already loaded
@@ -169,7 +174,7 @@ export class TransactionStore {
     async getTransactionsByContract(contractName: string): Promise<string[]> {
         // Fetch transactions for this contract from the API
         const response = await fetch(
-            `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transactions/contract/${contractName}?nb_results=100&no_cache=${Date.now()}`
+            `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transactions/contract/${contractName}?nb_results=100&no_cache=${Date.now()}`,
         );
         const transactions = await response.json();
         const txHashes = transactions.map((tx: TransactionInfo) => tx.tx_hash);

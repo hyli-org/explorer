@@ -31,6 +31,7 @@ const data = computed<ProofInfo | TransactionInfo>(() => {
 const isBlob = (
     _d: ComputedRef<TransactionInfo | ProofInfo> | TransactionInfo | ProofInfo = data,
 ): _d is ComputedRef<TransactionInfo> | TransactionInfo => {
+    proofStore.value.data?.[tx_hash.value]; // touch for reactivity;
     return transactionStore.value.data?.[tx_hash.value] !== undefined;
 };
 
@@ -76,7 +77,7 @@ const toggleRawData = (index: number) => {
             <div v-if="activeTab === 'Overview'" class="data-card">
                 <div class="divide-y divide-secondary/5">
                     <div class="info-row">
-                        <span class="info-label">{{ isBlob() ? "Transaction" : "Proof" }} Hash:</span>
+                        <span class="info-label">{{ isBlob() ? "Blob" : "Proof" }} tx Hash:</span>
                         <div class="flex items-center gap-2">
                             <span class="text-mono">{{ tx_hash }}</span>
                             <CopyButton :text="tx_hash" />
@@ -91,11 +92,6 @@ const toggleRawData = (index: number) => {
                             </RouterLink>
                             <CopyButton :text="data.block_hash" />
                         </div>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">Type:</span>
-                        <span class="text-label">{{ data?.transaction_type || "Unknown" }}</span>
                     </div>
 
                     <div class="info-row">
@@ -116,22 +112,38 @@ const toggleRawData = (index: number) => {
                     </div>
 
                     <div class="info-row">
-                        <span class="info-label">Parent DP Hash:</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-mono">{{ data?.parent_dp_hash }}</span>
-                            <CopyButton :text="data?.parent_dp_hash" />
-                        </div>
+                        <span class="info-label">Timestamp:</span>
+                        <span class="text-label">{{ formatTimestamp(data?.timestamp) }}</span>
                     </div>
 
-                    <div class="info-row">
-                        <span class="info-label">Timestamp:</span>
-                        <span class="text-label">{{ formatTimestamp(data.timestamp) }}</span>
-                    </div>
+                    <template v-if="isBlob(data)">
+                        <div class="info-row">
+                            <span class="info-label">TX Sender:</span>
+                            <span class="text-label">{{ data?.identity ?? "Unknown" }}</span>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="info-row" v-for="(ho, i) in data?.proof_outputs || []" :key="i">
+                            <span class="info-label">Proof #{{ i + 1 }}:</span>
+                            <div class="text-sm class flex flex-col gap-1">
+                                <span
+                                    >TX hash:
+                                    <RouterLink :to="{ name: 'Transaction', params: { tx_hash: ho[0] } }">{{ ho[0] }}</RouterLink>
+                                    <CopyButton class="text-xs w-4 h-4" style="padding: 1px !important" :text="ho[0]" />
+                                </span>
+                                <span>Blob index: {{ ho[1] }} (Proof #{{ ho[2] }})</span>
+                                <span
+                                    >Proof output: "{{
+                                        (ho[3]?.program_outputs || []).map((x: number) => String.fromCharCode(x))?.join("")
+                                    }}"</span
+                                >
+                            </div>
+                        </div></template
+                    >
                 </div>
             </div>
 
             <div v-else-if="activeTab === 'Blobs' && isBlob(data) && data?.blobs" class="data-card">
-                <h3 class="card-header">Blobs</h3>
                 <div>
                     <div v-for="(blob, index) in data.blobs" :key="index" class="p-4 border-b-2">
                         <div class="mb-2">
@@ -164,11 +176,11 @@ const toggleRawData = (index: number) => {
                                 </div>
                             </div>
                             <div v-if="blob.proof_outputs && blob.proof_outputs.length > 0">
-                                <div class="text-sm text-neutral mb-2">Proof Outputs:</div>
+                                <div class="text-sm text-neutral mb-2">Proofs:</div>
                                 <div
                                     v-for="(output, outputIndex) in blob.proof_outputs"
                                     :key="outputIndex"
-                                    class="mb-4 bg-secondary/5 rounded p-3"
+                                    class="mb-4 bg-secondary/5 rounded-xl p-3"
                                 >
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
@@ -176,10 +188,10 @@ const toggleRawData = (index: number) => {
                                             <div class="text-xs text-mono">{{ output.identity }}</div>
                                         </div>
                                         <div>
-                                            <div class="text-xs font-medium mb-1">Status</div>
+                                            <div class="text-xs font-medium mb-1">Result</div>
                                             <div class="text-xs">
                                                 <span :class="output.success ? 'text-green-600' : 'text-red-600'">
-                                                    {{ output.success ? "Success" : "Failed" }}
+                                                    {{ output.success ? "Executed" : "Failed to execute blob" }}
                                                 </span>
                                             </div>
                                         </div>
@@ -210,7 +222,7 @@ const toggleRawData = (index: number) => {
             <div v-else-if="activeTab === 'Events' && isBlob(data) && data?.events" class="data-card">
                 <h3 class="card-header">Events</h3>
                 <div>
-                    <div v-for="(event, index) in [...data.events].reverse()" :key="index" class="p-4 border-b-2">
+                    <div v-for="(event, index) in [...data.events]" :key="index" class="p-4 border-b-2">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-sm font-medium text-secondary">Event #{{ index + 1 }}: {{ event.name }}</span>
                             <RouterLink
