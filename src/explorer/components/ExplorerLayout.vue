@@ -60,7 +60,7 @@ function setActiveTab(tab: string) {
 }
 
 .code-block {
-    @apply bg-secondary/5 p-6 rounded-xl font-mono text-neutral overflow-x-auto whitespace-pre-wrap break-all;
+    @apply bg-secondary/5 p-4 rounded-xl font-mono text-neutral overflow-x-auto whitespace-pre-wrap break-all;
     max-height: 600px;
     font-size: 0.875rem;
     line-height: 1.5rem;

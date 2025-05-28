@@ -74,7 +74,7 @@ const formatTxTimestamp = (timestamp: number) => {
                     </div>
 
                     <div class="info-row">
-                        <span class="info-label">Transactions:</span>
+                        <span class="info-label">Transactions (blob tx only):</span>
                         <span class="text-label">{{ transactions.length || 0 }} transactions</span>
                     </div>
                 </div>
@@ -82,7 +82,7 @@ const formatTxTimestamp = (timestamp: number) => {
 
             <!-- Transactions List -->
             <div v-if="activeTab === 'Overview' && transactions.length > 0" class="data-card">
-                <h3 class="card-header">Transactions</h3>
+                <h3 class="card-header">Transactions (blob tx only)</h3>
                 <div>
                     <RouterLink
                         v-for="tx_hash in transactions"

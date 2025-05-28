@@ -14,7 +14,7 @@ const searchQuery = ref("");
 const wsService = ref<WebSocketService | null>(null);
 
 const formatVerifierName = (verifier: string) => {
-    const parts = verifier.split('-');
+    const parts = verifier.split("-");
     const name = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
     if (parts.length > 1) {
         return `${name} v${parts[1]}`;
@@ -300,12 +300,7 @@ const blockTimeChartData = computed(() => ({
                     <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20">
                         <div class="flex items-center gap-3 mb-2">
                             <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                                />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
                             <h3 class="text-sm font-medium text-neutral uppercase">Peak Txs in 1 min (past 24h)</h3>
                         </div>
@@ -314,7 +309,10 @@ const blockTimeChartData = computed(() => ({
                         </p>
                         <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
                             <div>
-                                Achieved: <span class="text-secondary">{{ stats?.peak_txs?.[0] ? getTimeAgo(new Date(stats.peak_txs[0] * 1000).toISOString()) : "Never" }}</span>
+                                Achieved:
+                                <span class="text-secondary">{{
+                                    stats?.peak_txs?.[0] ? getTimeAgo(new Date(stats.peak_txs[0] * 1000).toISOString()) : "Never"
+                                }}</span>
                             </div>
                         </div>
                     </div>
@@ -366,15 +364,11 @@ const blockTimeChartData = computed(() => ({
                                             <div class="flex items-center gap-3 text-neutral">
                                                 <span>
                                                     Transactions:
-                                                    <span class="text-secondary">{{
-                                                        blockStore.data[hash].total_txs || "0"
-                                                    }}</span>
+                                                    <span class="text-secondary">{{ blockStore.data[hash].total_txs || "0" }}</span>
                                                 </span>
                                                 <!-- <span>Size: <span class="text-secondary">24.5 KB (fake)</span></span> -->
                                             </div>
-                                            <span class="text-xs px-2 py-0.5 bg-primary/5 text-primary rounded-full">
-                                                Finalized
-                                            </span>
+                                            <span class="text-xs px-2 py-0.5 bg-primary/5 text-primary rounded-full"> Finalized </span>
                                         </div>
                                     </div>
                                 </div>
@@ -427,7 +421,12 @@ const blockTimeChartData = computed(() => ({
                                             </div>
                                             <div class="flex items-center justify-between text-xs">
                                                 <div class="flex items-center gap-3 text-neutral">
-                                                    <span>Sender: <span class="text-secondary font-mono">(unknown)</span></span>
+                                                    <span
+                                                        >Sender:
+                                                        <span class="text-secondary font-mono">{{
+                                                            transactionStore.data[tx_hash]?.identity ?? "(unknown)"
+                                                        }}</span></span
+                                                    >
                                                 </div>
                                                 <span class="text-xs px-2 py-0.5 bg-green-50 text-green-600 rounded-full">
                                                     {{ transactionStore.data[tx_hash].transaction_status }}
