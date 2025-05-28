@@ -22,6 +22,7 @@ export type WalletAction =
               key: string;
               expiration: number;
               whitelist: string[];
+              laneId?: string;
           };
       }
     | {
@@ -33,7 +34,6 @@ export type WalletAction =
     | {
           UseSessionKey: {
               account: string;
-              key: string;
               nonce: number;
           };
       };
