@@ -93,8 +93,7 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
                 const walletAction = deserializeWalletAction(data);
                 return formatObject(walletAction);
             default:
-                // Handle all wallet contracts
-                if (contractName.startsWith("wallet-")) {
+                if (contractName.startsWith("wallet")) {
                     const walletAction = deserializeWalletAction(data);
                     return formatObject(walletAction);
                 }
