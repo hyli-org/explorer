@@ -6,7 +6,7 @@ export type AuthMethod = {
     };
 };
 
-export type IdentityAction =
+export type WalletAction =
     | {
           RegisterIdentity: {
               account: string;
@@ -62,7 +62,7 @@ export type IdentityAction =
           };
       };
 
-export const deserializeWalletAction = (data: number[]): IdentityAction => {
+export const deserializeWalletAction = (data: number[]): WalletAction => {
     return borshDeserialize(schema, new Uint8Array(data));
 };
 
@@ -83,7 +83,7 @@ const schema = BorshSchema.Enum({
     AddSessionKey: BorshSchema.Struct({
         account: BorshSchema.String,
         key: BorshSchema.String,
-        expiration_date: BorshSchema.u128,
+        expiration: BorshSchema.u128,
         whitelist: BorshSchema.Vec(BorshSchema.String),
     }),
     RemoveSessionKey: BorshSchema.Struct({
