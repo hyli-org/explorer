@@ -6,6 +6,7 @@ import { deserializeWalletAction } from "@/model/wallet";
 import { deserializeHyleAction } from "@/model/hyle";
 import { deserializeSmtTokenAction } from "@/model/smt_token";
 import { deserializeFaucetAction } from "@/model/faucet";
+import { deserializeOrderbookAction } from "@/model/orderbook";
 
 export const parseHexToVec = (hex: string): number[] | null => {
     const tokens = hex.match(/[0-9a-f]{2}/gi);
@@ -92,6 +93,9 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
             case "wallet":
                 const walletAction = deserializeWalletAction(data);
                 return formatObject(walletAction);
+            case "orderbook":
+                const orderbookAction = deserializeOrderbookAction(data);
+                return formatObject(orderbookAction);
             default:
                 if (contractName.startsWith("wallet")) {
                     const walletAction = deserializeWalletAction(data);
