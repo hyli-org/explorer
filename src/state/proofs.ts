@@ -45,4 +45,16 @@ export class ProofStore {
             return;
         }
     }
+
+    async getPaginatedProofs(startBlock: number, pageSize: number): Promise<{ proofs: ProofInfo[]; lastBlock: number | null }> {
+        const response = await fetch(
+            `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/proofs?start_block=${startBlock}&nb_results=${pageSize}&no_cache=${Date.now()}`,
+        );
+        const proofs = await response.json();
+        for (const proof of proofs) {
+            this.data[proof.tx_hash] = proof;
+        }
+        const lastBlock = proofs.length > 0 ? proofs[proofs.length - 1].block_hash : null;
+        return { proofs, lastBlock };
+    }
 }

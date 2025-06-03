@@ -1,48 +1,67 @@
 <script setup lang="ts">
 import Header from "@/explorer/Header.vue";
-import { proofStore } from "@/state/data";
+import { proofStore, blockStore } from "@/state/data";
 import { onMounted, ref, computed } from "vue";
 
 const currentPage = ref(1);
-const pageSize = 10;
+const pageSize = 100;
 const isLoading = ref(false);
 
-// Compute total proofs from latest proofs list
-const totalProofs = computed(() => proofStore.value.latest.length);
+const currentPageProofs = ref<any[]>([]);
+const totalPages = ref(1);
 
-// Compute the current page's proof range
-const pageProofRange = computed(() => {
-    const startIndex = (currentPage.value - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return { startIndex, endIndex };
+const startBlock = computed(() => {
+    // If there are proofs, use the block height of the latest proof
+    if (proofStore.value.latest.length > 0) {
+        const latestProof = proofStore.value.data[proofStore.value.latest[0]];
+        if (latestProof && latestProof.block_hash) {
+            const proofBlockHeight = blockStore.value.data[latestProof.block_hash]?.height;
+            if (!proofBlockHeight) {
+                blockStore.value.load(latestProof.block_hash);
+            } else {
+                return proofBlockHeight - (currentPage.value - 1) * pageSize;
+            }
+        }
+    }
+    // Fallback: use latest block
+    if (!blockStore.value.latest[0]) return null;
+    const latestBlockHeight = blockStore.value.data[blockStore.value.latest[0]].height;
+    return latestBlockHeight - (currentPage.value - 1) * pageSize;
 });
 
-// Compute the current page's proofs
-const currentPageProofs = computed(() => {
-    const { startIndex, endIndex } = pageProofRange.value;
-    return proofStore.value.latest.slice(startIndex, endIndex).map((hash) => proofStore.value.data[hash]);
-});
-
-const totalPages = computed(() => Math.ceil(totalProofs.value / pageSize));
+const loadProofs = async () => {
+    isLoading.value = true;
+    currentPageProofs.value = [];
+    try {
+        if (!blockStore.value.latest[0]) {
+            await blockStore.value.loadLatest();
+        }
+        if (!startBlock.value || startBlock.value <= 0) {
+            currentPageProofs.value = [];
+            totalPages.value = 1;
+            return;
+        }
+        const { proofs } = await proofStore.value.getPaginatedProofs(startBlock.value, pageSize);
+        currentPageProofs.value = proofs;
+        // Update total pages based on latest block
+        const latestBlockHeight = blockStore.value.data[blockStore.value.latest[0]].height;
+        totalPages.value = Math.ceil(latestBlockHeight / pageSize);
+    } catch (error) {
+        console.error("Failed to load proofs:", error);
+    } finally {
+        isLoading.value = false;
+    }
+};
 
 const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page;
+        loadProofs();
     }
 };
 
-// Load latest proofs on mount
 onMounted(async () => {
-    if (proofStore.value.latest.length === 0) {
-        isLoading.value = true;
-        try {
-            await proofStore.value.loadLatest();
-        } catch (error) {
-            console.error("Failed to load proofs:", error);
-        } finally {
-            isLoading.value = false;
-        }
-    }
+    await loadProofs();
 });
 </script>
 
@@ -55,6 +74,27 @@ onMounted(async () => {
                 <p class="text-neutral">Explore all zero-knowledge proofs in the Hyli blockchain</p>
             </div>
 
+            <!-- Pagination (Top) -->
+            <div class="flex items-center justify-between mb-6">
+                <button
+                    @click="goToPage(currentPage - 1)"
+                    :disabled="currentPage === 1"
+                    class="px-4 py-2 text-sm font-medium rounded-xl bg-secondary/5 text-secondary hover:bg-secondary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Previous
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-neutral"> Page {{ currentPage }} of {{ totalPages }} </span>
+                </div>
+                <button
+                    @click="goToPage(currentPage + 1)"
+                    :disabled="currentPage >= totalPages"
+                    class="px-4 py-2 text-sm font-medium rounded-xl bg-secondary/5 text-secondary hover:bg-secondary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Next
+                </button>
+            </div>
+
             <!-- Proofs List -->
             <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20">
                 <div class="space-y-4">
@@ -65,6 +105,9 @@ onMounted(async () => {
 
                     <!-- Proofs List -->
                     <div v-else class="divide-y divide-secondary/5">
+                        <div v-if="currentPageProofs.length === 0" class="text-center">
+                            No proofs found between blocks #{{ (startBlock ?? 0) - pageSize }} and #{{ startBlock ?? 0 }}
+                        </div>
                         <RouterLink
                             v-for="proof in currentPageProofs"
                             :key="proof.tx_hash"
@@ -91,7 +134,7 @@ onMounted(async () => {
                                                     :to="{ name: 'Block', params: { block_hash: proof.block_hash } }"
                                                     class="text-secondary hover:underline"
                                                 >
-                                                    {{ proof.block_hash.slice(0, 8) }}...
+                                                    {{ proof.block_hash ? `${proof.block_hash.slice(0, 8)}...` : "Pending" }}
                                                 </RouterLink>
                                             </span>
                                         </div>
@@ -108,27 +151,6 @@ onMounted(async () => {
                                 </div>
                             </div>
                         </RouterLink>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-secondary/5">
-                        <button
-                            @click="goToPage(currentPage - 1)"
-                            :disabled="currentPage === 1"
-                            class="px-4 py-2 text-sm font-medium rounded-xl bg-secondary/5 text-secondary hover:bg-secondary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Previous
-                        </button>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm text-neutral"> Page {{ currentPage }} of {{ totalPages }} </span>
-                        </div>
-                        <button
-                            @click="goToPage(currentPage + 1)"
-                            :disabled="currentPage >= totalPages"
-                            class="px-4 py-2 text-sm font-medium rounded-xl bg-secondary/5 text-secondary hover:bg-secondary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Next
-                        </button>
                     </div>
                 </div>
             </div>

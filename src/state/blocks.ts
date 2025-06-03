@@ -20,10 +20,10 @@ export class BlockStore {
     handleNewBlock(block: BlockInfo) {
         // Add new block to store
         this.data[block.hash] = block;
-        
+
         // Add to latest blocks list
         this.latest.unshift(block.hash);
-        
+
         // Keep only the last 10 blocks in latest
         if (this.latest.length > 10) {
             this.latest.pop();

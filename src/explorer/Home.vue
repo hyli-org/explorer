@@ -474,21 +474,7 @@ const blockTimeChartData = computed(() => ({
                                                     getTimeAgo(proofStore.data[proof_hash].timestamp)
                                                 }}</span>
                                             </div>
-                                            <div class="flex items-center justify-between text-xs">
-                                                <div class="flex items-center gap-3 text-neutral">
-                                                    <span
-                                                        >Block:
-                                                        <RouterLink
-                                                            :to="{
-                                                                name: 'Block',
-                                                                params: { block_hash: proofStore.data[proof_hash].block_hash },
-                                                            }"
-                                                            class="text-secondary hover:underline"
-                                                        >
-                                                            {{ proofStore.data[proof_hash].block_hash.slice(0, 8) }}...
-                                                        </RouterLink>
-                                                    </span>
-                                                </div>
+                                            <div class="flex items-center justify-end text-xs">
                                                 <span
                                                     class="text-xs px-2 py-0.5 rounded-full"
                                                     :class="{

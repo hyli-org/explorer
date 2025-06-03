@@ -187,4 +187,21 @@ export class TransactionStore {
 
         return txHashes;
     }
+
+    async getPaginatedTransactions(
+        startBlock: number,
+        pageSize: number,
+    ): Promise<{ transactions: TransactionInfo[]; lastBlock: number | null }> {
+        const response = await fetch(
+            `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transactions?start_block=${startBlock}&nb_results=${pageSize}&no_cache=${Date.now()}`,
+        );
+        const transactions = await response.json();
+        for (const tx of transactions) {
+            this.data[tx.tx_hash] = tx;
+            this.updateTransactionsByBlock(tx);
+            this.updateTransactionsByContract(tx);
+        }
+        const lastBlock = transactions.length > 0 ? transactions[transactions.length - 1].block_hash : null;
+        return { transactions, lastBlock };
+    }
 }
