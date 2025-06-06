@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ExplorerLayout from "@/explorer/components/ExplorerLayout.vue";
 import CopyButton from "@/components/CopyButton.vue";
+import TransactionStatus from "@/explorer/components/TransactionStatus.vue";
 import { transactionStore, proofStore } from "@/state/data";
 import { getTimeAgo } from "@/state/utils";
 import { computed, watch, type ComputedRef, ref } from "vue";
@@ -96,19 +97,7 @@ const toggleRawData = (index: number) => {
 
                     <div class="info-row">
                         <span class="info-label">Status:</span>
-                        <div class="flex items-center gap-2">
-                            <div
-                                :class="
-                                    (() => {
-                                        if (!data?.transaction_status) return 'pending';
-                                        if (data.transaction_status === 'Success') return 'success';
-                                        if (data.transaction_status === 'Failed') return 'failed';
-                                        return 'default';
-                                    })() + ' status-indicator'
-                                "
-                            ></div>
-                            <span class="text-label">{{ data?.transaction_status || "Pending" }}</span>
-                        </div>
+                        <TransactionStatus :status="data?.transaction_status" />
                     </div>
 
                     <div class="info-row">
