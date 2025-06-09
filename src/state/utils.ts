@@ -16,3 +16,15 @@ export async function copyToClipboard(text: string) {
         console.error("Failed to copy text: ", err);
     }
 }
+
+export const formatVerifierName = (verifier: string): string => {
+  if (verifier.startsWith("risc0")) {
+    return "RISC Zero v2";
+  } else if (verifier.startsWith("sp1")) {
+    return "SP1 v5";
+  } else if (verifier.startsWith("noir")) {
+    return "Noir";
+  } else {
+    return verifier;
+  }
+};

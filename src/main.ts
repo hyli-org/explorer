@@ -9,6 +9,8 @@ import Contract from "./explorer/Contract.vue";
 import Blocks from "./explorer/Blocks.vue";
 import Transactions from "./explorer/Transactions.vue";
 import Proofs from "./explorer/Proofs.vue";
+import NetworkStats from "./explorer/NetworkStats.vue";
+
 const routes = [
     { path: "/", component: Home, name: "Home" },
     {
@@ -40,6 +42,11 @@ const routes = [
         path: "/proofs",
         component: Proofs,
         name: "Proofs",
+    },
+    {
+        path: "/network-stats",
+        component: NetworkStats,
+        name: "NetworkStats",
     },
 ];
 
