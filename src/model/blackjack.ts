@@ -1,5 +1,5 @@
-import { borshSerialize, BorshSchema, borshDeserialize } from "borsher";
-import { Blob } from "hyle";
+import {  BorshSchema, borshDeserialize } from "borsher";
+import {  StructuredBlobData, structuredBlobDataSchema } from "hyle";
 
 export const blackjackContractName = "blackjack";
 
@@ -12,111 +12,25 @@ export type BlackJackAction =
     | { Hit: {} }
     | { Stand: {} }
     | { DoubleDown: {} }
-    | { Claim: {} };
+    | { Claim: {} }
+    | { Withdraw: {
+        amount: number;
+    } };
 
-export type UniqueAction = {
-    id: number;
-    action: BlackJackAction;
+
+
+export const deserializeBlackJackAction = (data: number[]): StructuredBlobData<BlackJackAction> => {
+    return borshDeserialize(structuredBlobDataSchema(schema), new Uint8Array(data)) as StructuredBlobData<BlackJackAction>;
 };
 
-//
-// Builders
-//
-
-export const init = (id: number): Blob => {
-    const action: BlackJackAction = {
-        Init: {},
-    };
-    const uniqueAction: UniqueAction = {
-        id,
-        action,
-    };
-    const blob: Blob = {
-        contract_name: blackjackContractName,
-        data: serializeUniqueAction(uniqueAction),
-    };
-    return blob;
-};
-
-export const hit = (id: number): Blob => {
-    const action: BlackJackAction = {
-        Hit: {},
-    };
-    const uniqueAction: UniqueAction = {
-        id,
-        action,
-    };
-    const blob: Blob = {
-        contract_name: blackjackContractName,
-        data: serializeUniqueAction(uniqueAction),
-    };
-    return blob;
-};
-
-export const stand = (id: number): Blob => {
-    const action: BlackJackAction = {
-        Stand: {},
-    };
-    const uniqueAction: UniqueAction = {
-        id,
-        action,
-    };
-    const blob: Blob = {
-        contract_name: blackjackContractName,
-        data: serializeUniqueAction(uniqueAction),
-    };
-    return blob;
-};
-
-export const doubleDown = (id: number): Blob => {
-    const action: BlackJackAction = {
-        DoubleDown: {},
-    };
-    const uniqueAction: UniqueAction = {
-        id,
-        action,
-    };
-    const blob: Blob = {
-        contract_name: blackjackContractName,
-        data: serializeUniqueAction(uniqueAction),
-    };
-    return blob;
-};
-
-export const claim = (id: number): Blob => {
-    const action: BlackJackAction = {
-        Claim: {},
-    };
-    const uniqueAction: UniqueAction = {
-        id,
-        action,
-    };
-    const blob: Blob = {
-        contract_name: blackjackContractName,
-        data: serializeUniqueAction(uniqueAction),
-    };
-    return blob;
-};
-
-//
-// Serialisation
-//
-
-const serializeUniqueAction = (action: UniqueAction): number[] => {
-    return Array.from(borshSerialize(schema, action));
-};
-
-export const deserializeBlackJackAction = (data: number[]): UniqueAction => {
-    return borshDeserialize(schema, new Uint8Array(data));
-};
-
-const schema = BorshSchema.Struct({
-    id: BorshSchema.u64,
-    action: BorshSchema.Enum({
+const schema = 
+     BorshSchema.Enum({
         Init: BorshSchema.Struct({}),
         Hit: BorshSchema.Struct({}),
         Stand: BorshSchema.Struct({}),
         DoubleDown: BorshSchema.Struct({}),
         Claim: BorshSchema.Struct({}),
-    }),
+        Withdraw: BorshSchema.Struct({
+            amount: BorshSchema.u128,
+        }),
 }); 
