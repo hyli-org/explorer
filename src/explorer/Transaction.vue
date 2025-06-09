@@ -137,7 +137,7 @@ const toggleRawData = (index: number) => {
                     <div v-for="(blob, index) in data.blobs" :key="index" class="p-4 border-b-2">
                         <div class="mb-2">
                             <span class="text-sm font-medium text-secondary"
-                                >Blob #{{ index + 1 }} to
+                                >Blob #{{ index }} to
                                 <RouterLink :to="{ name: 'Contract', params: { contract_name: blob.contract_name } }" class="text-link">
                                     {{ blob.contract_name }}
                                 </RouterLink>
