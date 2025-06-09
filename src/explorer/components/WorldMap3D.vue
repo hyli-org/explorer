@@ -66,18 +66,24 @@ const rotateToValidator = (validator: string) => {
     const cluster = findClusterByValidator(validator);
     if (!cluster) return;
 
-    const [lat, long] = cluster.coordinates;
+    const [targetLat, targetLong] = cluster.coordinates;
     
-    // Get the target position on the globe surface
-    const targetPosition = latLongToVector3(lat, long, 5.1);
+    // Get current camera position in lat/long
+    const currentPosition = camera.position.clone();
+    const [currentLat, currentLong] = vector3ToLatLong(currentPosition);
     
-    // Calculate camera position (slightly offset from the target)
-    const cameraOffset = 10; // Distance from the surface
-    const cameraPosition = targetPosition.clone().normalize().multiplyScalar(cameraOffset);
+    // Adjust longitude to take the shortest path
+    let adjustedTargetLong = targetLong;
+    const longDiff = targetLong - currentLong;
+    if (Math.abs(longDiff) > 180) {
+        if (longDiff > 0) {
+            adjustedTargetLong -= 360;
+        } else {
+            adjustedTargetLong += 360;
+        }
+    }
     
-    // Animate camera position
-    const startPosition = camera.position.clone();
-    const duration = 1500; // 1 second
+    const duration = 1500; // 1.5 seconds
     const startTime = Date.now();
     isRotating = false;
     rotatingGroup.rotation.y = 0;
@@ -91,17 +97,20 @@ const rotateToValidator = (validator: string) => {
             ? 2 * progress * progress
             : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
-        // Calculate intermediate position while maintaining distance
-        const intermediatePosition = new THREE.Vector3();
-        intermediatePosition.lerpVectors(startPosition, cameraPosition, easeProgress);
+        // Great circle interpolation
+        const lat = currentLat + (targetLat - currentLat) * easeProgress;
+        const long = currentLong + (adjustedTargetLong - currentLong) * easeProgress;
         
-        // Normalize and scale to maintain constant distance
-        intermediatePosition.normalize().multiplyScalar(cameraOffset);
+        // Normalize longitude to [-180, 180]
+        const normalizedLong = ((long + 180) % 360 + 360) % 360 - 180;
         
-        // Update camera position
-        camera.position.copy(intermediatePosition);
+        // Calculate camera position with slight offset from surface
+        const cameraOffset = 10;
+        const position = latLongToVector3(lat, normalizedLong, cameraOffset);
+        camera.position.copy(position);
         
-        // Make camera look at the target point
+        // Look at the target point on the surface
+        const targetPosition = latLongToVector3(targetLat, targetLong, 5.1);
         camera.lookAt(targetPosition);
 
         if (progress < 1) {
