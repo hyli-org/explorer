@@ -4,6 +4,7 @@ import { network } from "@/state/network";
 
 <template>
     <div class="relative inline-block">
+                <RouterLink :to="{ name: 'NetworkStats' }" class="text-sm font-medium text-neutral text-primary hover:underline transition-colors">Network</RouterLink>
         <select
             v-model="network"
             class="appearance-none min-w-[140px] bg-white/80 backdrop-blur-sm border border-white/20 text-secondary px-4 py-2 pr-10 rounded-xl font-medium cursor-pointer hover:bg-secondary/5 transition-colors uppercase text-sm"

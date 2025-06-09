@@ -13,6 +13,8 @@
         "@cosmjs/stargate": "^0.32.4",
         "@noir-lang/backend_barretenberg": "^0.30.0",
         "@noir-lang/noir_js": "^0.30.0",
+        "@types/three": "^0.177.0",
+        "@vueuse/core": "^13.3.0",
         "asn1.js": "^5.4.1",
         "chart.js": "^4.4.8",
         "dotenv": "^16.4.7",
@@ -21,6 +23,7 @@
         "pkijs": "^3.2.5",
         "protobufjs": "^7.4.0",
         "rollup-plugin-copy": "^3.5.0",
+        "three": "^0.177.0",
         "vue": "^3.5.13",
         "vue-chartjs": "^5.3.2",
         "vue-router": "^4.5.0"

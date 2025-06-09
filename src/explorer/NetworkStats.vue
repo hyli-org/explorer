@@ -5,6 +5,7 @@ import { getNetworkNodeApiUrl, getNetworkIndexerApiUrl, getNetworkWebSocketUrl, 
 import { onMounted, ref, computed, onUnmounted } from "vue";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
 import NetworkChart from "@/explorer/components/NetworkChart.vue";
+import WorldMap3D from "@/explorer/components/WorldMap3D.vue";
 import { getTimeAgo, formatVerifierName } from "@/state/utils";
 import { WebSocketService } from "@/services/websocket";
 
@@ -31,6 +32,44 @@ const stakingState = ref<null | {
     };
     total_bond: number;
 }>(null);
+
+// Validator clusters data
+const validatorClusters: Array<{
+    name: string;
+    validators: string[];
+    color: string;
+    coordinates: [number, number];
+    connections?: string[]; // Names of clusters to connect to
+}> = [
+    {
+        name: "Europe",
+        validators: ["82d0d3bc82a052c2b19ced45424c1ef6c2626d391f62243b4aecac24368082f31f36b0f691da45c38ff3f16152934f51", "8630e21f519b16f7e9665046fb5851aaf29274d9dd8579898b86173b1a61b1db6f1a761bba9601d2bcd30991b916188b"],
+        color: "#4CAF50",
+        coordinates: [48.8566, 2.3522] as [number, number], // Paris
+        connections: ["North America", "South America", "Asia"]
+    },
+    {
+        name: "North America",
+        validators: ["8ab1638012828de2fb821761ccdb36a84b7da6184d87241518ef2c56778b5e85d54f9a8f50ddfb89bcef69a0a5484603", "990d2627844d557cb11f2a3d9e2836826687ea7bef848496a2eefbd98b9e2ea52d39d30a1a12f06a977fb3f0ffb604b8"],
+        color: "#2196F3",
+        coordinates: [40.7128, -74.0060] as [number, number], // New York
+        connections: ["South America", "Asia"]
+    },
+    {
+        name: "Asia",
+        validators: ["a1c1a63c0b72648680402aa5c378922dab31a71068a50c9272b9edee1766c615c20e9bf01a79ca70b72db885b640d1f3", "a72c202664eaa2c712e5e7eb2cf2b2f98f05e813145a3ce2e8008d82e4ee5a6a765e7a582f92b02965855ad446ea4ccc"],
+        color: "#FF9800",
+        coordinates: [35.6762, 139.6503] as [number, number], // Tokyo
+        connections: ["Europe", "South America"]
+    },
+    {
+        name: "South America",
+        validators: ["afac1e7cf451ee4659a2b12822acfb54a8aaabb9acd0db917974838ffa7c8da9eb6a856df16a336c772247dc06f2f86e", "afcb54d85af4d126b4a389f42747280b84fa3955fb94238d7839ba41fb96cbe6ae836d9954df37ef1a70f16e7c0a0e2d"],
+        color: "#FF9800",
+        coordinates: [-19.9167, -43.9333] as [number, number], // Rio de Janeiro
+        connections: ["North America", "Europe"]
+    }
+];
 
 // Format number to human readable format (e.g., 100k, 1.2M)
 const formatNumber = (num: number): string => {
@@ -156,6 +195,16 @@ const blockTimeChartData = computed(() => ({
         },
     ],
 }));
+
+const worldMapRef = ref<InstanceType<typeof WorldMap3D> | null>(null);
+
+const handleValidatorHover = (validator: string) => {
+    worldMapRef.value?.rotateToValidator(validator);
+};
+
+const handleValidatorLeave = () => {
+    worldMapRef.value?.startRotating();
+};
 </script>
 
 <template>
@@ -251,8 +300,24 @@ const blockTimeChartData = computed(() => ({
                     </div>
                 </div>
 
+                <!-- Network Decentralization -->
+                <div v-if="network === 'testnet'" class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20 mb-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h2 class="text-lg font-medium text-primary">Network Decentralization</h2>
+                    </div>
+                    <div class="space-y-6">
+                        <p class="text-neutral">The network is distributed across multiple geographical regions to ensure high availability and resilience.</p>
+                        
+                        <!-- 3D World Map -->
+                        <WorldMap3D ref="worldMapRef" :clusters="validatorClusters" />
+                    </div>
+                </div>
+
                 <!-- Staking State -->
-                <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20 mb-8">
+                <div v-if="network === 'testnet'" class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20 mb-8">
                     <div class="flex items-center gap-3 mb-4">
                         <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -278,7 +343,10 @@ const blockTimeChartData = computed(() => ({
                         <div class="space-y-4">
                             <div class="text-sm text-neutral">Validator Balances & Data Dissemination</div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div v-for="(balance, validator) in stakingState.fees.balances" :key="validator" class="bg-secondary/5 rounded-lg p-4">
+                                <div v-for="(balance, validator) in stakingState.fees.balances" :key="validator" class="bg-secondary/5 rounded-lg p-4"
+                                         @mouseenter="handleValidatorHover(validator)"
+                                         @mouseleave="handleValidatorLeave()">
+
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="text-sm font-mono text-neutral truncate max-w-[200px]">{{ validator.slice(0, 10) }}...{{ validator.slice(-6) }}</div>
                                         <div class="text-sm text-primary">Disseminated: {{ (balance.cumul_size / 1024 / 1024).toFixed(2) }} MB</div>
