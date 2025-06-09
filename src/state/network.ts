@@ -30,7 +30,7 @@ export const persistentRef = <T>(key: string, initialValue: T) => {
     return dataRef;
 };
 
-export const network = persistentRef("network", "devnet");
+export const network = persistentRef("network", "testnet");
 
 export const getNetworkIndexerApiUrl = (network: string) => {
     return {
