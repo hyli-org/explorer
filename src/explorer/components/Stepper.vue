@@ -24,6 +24,7 @@ const getStepClass = computed(() => (index: number) => {
                         if (!props.finalStatus) return 'pending';
                         if (index == currentStep && props.finalStatus === 'Success') return 'success';
                         if (index == currentStep && props.finalStatus === 'Failure') return 'failed';
+                        if (index == currentStep && props.finalStatus === 'TimedOut') return 'timedOut';
                         return 'default';
                     })()
                 "
@@ -108,6 +109,9 @@ const getStepClass = computed(() => (index: number) => {
     }
     .bullet.failed {
         background-color: #ff4d4f;
+    }
+    .bullet.timedOut {
+        background-color: #ffa940;
     }
 }
 </style>
