@@ -14,12 +14,15 @@ const searchQuery = ref("");
 const wsService = ref<WebSocketService | null>(null);
 
 const formatVerifierName = (verifier: string) => {
-    const parts = verifier.split("-");
-    const name = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-    if (parts.length > 1) {
-        return `${name} v${parts[1]}`;
-    }
-    return name;
+  if (verifier.startsWith("risc0")) {
+    return "RISC Zero v2";
+  } else if (verifier.startsWith("sp1")) {
+    return "SP1 v5";
+  } else if (verifier.startsWith("noir")) {
+    return "Noir";
+  } else {
+    return verifier;
+  }
 };
 
 const stats = ref<null | {
