@@ -80,8 +80,14 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
                 return formatObject(secp256k1Blob);
             case "smt_token":
             case "oranj":
-                const smtTokenBlob = deserializeSmtTokenAction(data);
-                return formatObject(smtTokenBlob);
+                const oranjBlob = deserializeSmtTokenAction(data);
+                return formatObject(oranjBlob);
+            case "vitamin":
+                const vitaminBlob = deserializeSmtTokenAction(data);
+                return formatObject(vitaminBlob);
+            case "oxygen":
+                const oxygenBlob = deserializeSmtTokenAction(data);
+                return formatObject(oxygenBlob);
             case "faucet":
                 const faucetBlob = deserializeFaucetAction(data);
                 return formatObject(faucetBlob);
