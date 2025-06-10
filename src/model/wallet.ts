@@ -66,7 +66,12 @@ export type WalletAction =
       };
 
 export const deserializeWalletAction = (data: number[]): WalletAction => {
-    return borshDeserialize(schema, new Uint8Array(data));
+    let action: WalletAction =  borshDeserialize(schema, new Uint8Array(data));
+    if ("RegisterIdentity" in action) {
+        action.RegisterIdentity.salt = "***";
+        action.RegisterIdentity.invite_code = "***";
+    }
+    return action
 };
 
 const schema = BorshSchema.Enum({
@@ -78,6 +83,8 @@ const schema = BorshSchema.Enum({
                 hash: BorshSchema.String,
             }),
         }),
+        salt: BorshSchema.String,
+        invite_code: BorshSchema.String,
     }),
     VerifyIdentity: BorshSchema.Struct({
         account: BorshSchema.String,
