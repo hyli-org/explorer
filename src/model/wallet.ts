@@ -12,6 +12,8 @@ export type WalletAction =
               account: string;
               nonce: number;
               auth_method: AuthMethod;
+              salt: string;
+              invite_code: string;
           };
       }
     | {
@@ -26,6 +28,7 @@ export type WalletAction =
               key: string;
               expiration_date: number;
               whitelist: string[];
+              lane_id: string;
           };
       }
     | {

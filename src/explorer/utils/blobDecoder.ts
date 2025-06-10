@@ -78,7 +78,6 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
             case "secp256k1":
                 const secp256k1Blob = deserializeSecp256k1Blob(data);
                 return formatObject(secp256k1Blob);
-            case "smt_token":
             case "oranj":
                 const oranjBlob = deserializeSmtTokenAction(data);
                 return formatObject(oranjBlob);
