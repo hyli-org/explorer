@@ -11,8 +11,8 @@ export type WalletAction =
           RegisterIdentity: {
               account: string;
               nonce: number;
-              auth_method: AuthMethod;
               salt: string;
+              auth_method: AuthMethod;
               invite_code: string;
           };
       }
@@ -27,29 +27,8 @@ export type WalletAction =
               account: string;
               key: string;
               expiration_date: number;
-              whitelist: string[];
-              lane_id: string;
-          };
-      }
-    | {
-          RemoveSessionKey: {
-              account: string;
-              key: string;
-          };
-      }
-    | {
-          UseSessionKey: {
-              account: string;
-              nonce: number;
-          };
-      }
-    | {
-          AddSessionKey: {
-              account: string;
-              key: string;
-              expiration: number;
               whitelist?: string[];
-              laneId?: string;
+              lane_id?: string;
           };
       }
     | {
@@ -78,12 +57,12 @@ const schema = BorshSchema.Enum({
     RegisterIdentity: BorshSchema.Struct({
         account: BorshSchema.String,
         nonce: BorshSchema.u128,
+        salt: BorshSchema.String,
         auth_method: BorshSchema.Enum({
             Password: BorshSchema.Struct({
                 hash: BorshSchema.String,
             }),
         }),
-        salt: BorshSchema.String,
         invite_code: BorshSchema.String,
     }),
     VerifyIdentity: BorshSchema.Struct({
@@ -93,7 +72,7 @@ const schema = BorshSchema.Enum({
     AddSessionKey: BorshSchema.Struct({
         account: BorshSchema.String,
         key: BorshSchema.String,
-        expiration: BorshSchema.u128,
+        expiration_date: BorshSchema.u128,
         whitelist: BorshSchema.Option(BorshSchema.Vec(BorshSchema.String)),
         lane_id: BorshSchema.Option(BorshSchema.String),
     }),
