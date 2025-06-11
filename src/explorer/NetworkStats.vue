@@ -250,11 +250,11 @@ const handleValidatorLeave = () => {
                             <h3 class="text-sm font-medium text-neutral uppercase">Total Transactions</h3>
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
-                            {{ stats?.total_transactions || transactionStore.latest.length }}
+                            {{ stats?.total_transactions.toLocaleString() || transactionStore.latest.length }}
                         </p>
                         <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
                             <div>
-                                24H Tx: <span class="text-secondary">{{ stats?.txs_last_day || "0" }}</span>
+                                24H Tx: <span class="text-secondary">{{ stats?.txs_last_day.toLocaleString() || "0" }}</span>
                             </div>
                         </div>
                     </div>
@@ -272,14 +272,14 @@ const handleValidatorLeave = () => {
                             <h3 class="text-sm font-medium text-neutral uppercase">Smart Contracts</h3>
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
-                            {{ stats?.total_contracts || Object.keys(contractStore.data).length }}
+                            {{ stats?.total_contracts.toLocaleString() || Object.keys(contractStore.data).length }}
                         </p>
                         <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
                             <div>
-                                24H New: <span class="text-secondary">{{ stats?.contracts_last_day || "0" }}</span>
+                                24H New: <span class="text-secondary">{{ stats?.contracts_last_day.toLocaleString() || "0" }}</span>
                             </div>
                             <div>
-                                Active: <span class="text-secondary">{{ stats?.total_contracts || "0" }}</span>
+                                Active: <span class="text-secondary">{{ stats?.total_contracts.toLocaleString() || "0" }}</span>
                             </div>
                         </div>
                     </div>
@@ -317,7 +317,7 @@ const handleValidatorLeave = () => {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div v-for="stat in proofStats" :key="stat.verifier" class="bg-secondary/5 rounded-xl p-4">
                             <h3 class="text-sm font-medium text-neutral mb-2">{{ formatVerifierName(stat.verifier) }}</h3>
-                            <p class="text-2xl font-display text-primary">{{ stat.proof_count }}</p>
+                            <p class="text-2xl font-display text-primary">{{ stat.proof_count.toLocaleString() }}</p>
                         </div>
                         <div v-if="!proofStats" class="text-sm text-neutral">Loading...</div>
                     </div>

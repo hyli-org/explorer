@@ -196,11 +196,11 @@ const blockTimeChartData = computed(() => ({
                             <h3 class="text-sm font-medium text-neutral uppercase">Total Transactions</h3>
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
-                            {{ stats?.total_transactions || transactionStore.latest.length }}
+                            {{ stats?.total_transactions.toLocaleString() || transactionStore.latest.length }}
                         </p>
                         <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
                             <div>
-                                24H Tx: <span class="text-secondary">{{ stats?.txs_last_day || "0" }}</span>
+                                24H Tx: <span class="text-secondary">{{ stats?.txs_last_day.toLocaleString() || "0" }}</span>
                             </div>
                         </div>
                     </div>
@@ -222,7 +222,7 @@ const blockTimeChartData = computed(() => ({
                             </span>
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
-                            #{{ blockStore.latest[0] ? blockStore.data[blockStore.latest[0]].height : "37,382" }}
+                            #{{ blockStore.latest[0] ? blockStore.data[blockStore.latest[0]].height.toLocaleString() : "37,382" }}
                         </p>
                         <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
                             <div>
@@ -271,7 +271,7 @@ const blockTimeChartData = computed(() => ({
                         <div class="space-y-2">
                             <div v-for="stat in proofStats" :key="stat.verifier" class="flex items-center justify-between text-sm">
                                 <span class="text-neutral">{{ formatVerifierName(stat.verifier) }}</span>
-                                <span class="text-secondary font-medium">{{ stat.proof_count }}</span>
+                                <span class="text-secondary font-medium">{{ stat.proof_count.toLocaleString() }}</span>
                             </div>
                             <div v-if="!proofStats" class="text-sm text-neutral">Loading...</div>
                         </div>
@@ -285,7 +285,7 @@ const blockTimeChartData = computed(() => ({
                             <h3 class="text-sm font-medium text-neutral uppercase">Peak Txs in 1 min (past 24h)</h3>
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
-                            {{ stats?.peak_txs?.[1] || "0" }}
+                            {{ stats?.peak_txs?.[1].toLocaleString() || "0" }}
                         </p>
                         <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
                             <div>
