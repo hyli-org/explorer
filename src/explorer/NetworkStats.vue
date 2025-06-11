@@ -85,13 +85,24 @@ const validatorClusters: Array<{
 
 // Format number to human readable format (e.g., 100k, 1.2M)
 const formatNumber = (num: number): string => {
-    if (num >= 1_000_000) {
-        return (num / 1_000_000).toFixed(0).toLocaleString() + "M";
-    }
-    if (num >= 1_000) {
-        return (num / 1_000).toFixed(0).toLocaleString() + "k";
-    }
-    return num.toLocaleString();
+    if (num === 0) return "0";
+    
+    const k = 1000;
+    const sizes = ['', 'k', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc'];
+    const i = Math.floor(Math.log(num) / Math.log(k));
+    
+    return (num / Math.pow(k, i)).toFixed(2).toLocaleString() + sizes[i];
+};
+
+// Format bytes to human readable format (e.g., 1.5 GB, 500 MB)
+const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return "0 B";
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return (bytes / Math.pow(k, i)).toFixed(2).toLocaleString() + ' ' + sizes[i];
 };
 
 // Compute total delegations for each validator
@@ -391,7 +402,7 @@ const handleValidatorLeave = () => {
                                                     {{ validator.slice(0, 10) }}...{{ validator.slice(-6) }}
                                                 </div>
                                                 <div class="text-sm text-primary">
-                                                    Disseminated: {{ (stakingState?.fees.balances[validator]?.cumul_size / 1024 / 1024).toFixed(2) || 0 }} MB
+                                                    Disseminated: {{ formatBytes(stakingState?.fees.balances[validator]?.cumul_size || 0) }}
                                                 </div>
                                             </div>
                                             <div class="w-full bg-white/20 rounded-full h-2 mb-2">
