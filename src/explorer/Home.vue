@@ -14,15 +14,15 @@ const searchQuery = ref("");
 const wsService = ref<WebSocketService | null>(null);
 
 const formatVerifierName = (verifier: string) => {
-  if (verifier.startsWith("risc0")) {
-    return "RISC Zero v2";
-  } else if (verifier.startsWith("sp1")) {
-    return "SP1 v5";
-  } else if (verifier.startsWith("noir")) {
-    return "Noir";
-  } else {
-    return verifier;
-  }
+    if (verifier.startsWith("risc0")) {
+        return "RISC Zero v2";
+    } else if (verifier.startsWith("sp1")) {
+        return "SP1 v5";
+    } else if (verifier.startsWith("noir")) {
+        return "Noir";
+    } else {
+        return verifier;
+    }
 };
 
 const stats = ref<null | {
@@ -216,10 +216,12 @@ const blockTimeChartData = computed(() => ({
                                 />
                             </svg>
                             <h3 class="text-sm font-medium text-neutral uppercase">Current Block</h3>
+                            <!--
                             <span class="flex items-center gap-1 text-xs text-green-500">
                                 <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                                 Live
                             </span>
+                            -->
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
                             #{{ blockStore.latest[0] ? blockStore.data[blockStore.latest[0]].height.toLocaleString() : "37,382" }}
@@ -335,10 +337,12 @@ const blockTimeChartData = computed(() => ({
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center gap-2">
                                 <h2 class="text-lg font-medium text-primary">Latest Blocks</h2>
+                                <!--
                                 <span class="flex items-center gap-1 text-xs text-green-500">
                                     <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                                     Live
                                 </span>
+                                -->
                             </div>
                             <span class="text-xs bg-secondary/5 px-3 py-1 rounded-full text-neutral">
                                 Height {{ blockStore.latest[0] ? blockStore.data[blockStore.latest[0]].height : "37,382" }}
@@ -392,10 +396,12 @@ const blockTimeChartData = computed(() => ({
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-2">
                                     <h2 class="text-lg font-medium text-primary">Latest Transactions</h2>
+                                    <!--
                                     <span class="flex items-center gap-1 text-xs text-green-500">
                                         <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                                         Live
                                     </span>
+                                    -->
                                 </div>
                                 <span class="text-xs bg-secondary/5 px-3 py-1 rounded-full text-neutral">
                                     {{ transactionStore.latest.length || "15" }} recent

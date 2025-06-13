@@ -1,5 +1,5 @@
-import {  BlockInfo } from '@/state/blocks';
-import { TransactionInfo } from '@/state/transactions';
+import { BlockInfo } from "@/state/blocks";
+import { TransactionInfo } from "@/state/transactions";
 import { blockStore, transactionStore } from "@/state/data";
 
 export interface Event {
@@ -17,10 +17,11 @@ export class WebSocketService {
     }
 
     connect() {
+        return;
         this.ws = new WebSocket(this.url);
-        
+
         this.ws.onopen = () => {
-            console.log('WebSocket connected');
+            console.log("WebSocket connected");
             // Register for new blocks topic
             this.ws?.send(JSON.stringify({ RegisterTopic: "new_block" }));
             this.ws?.send(JSON.stringify({ RegisterTopic: "new_tx" }));
@@ -41,24 +42,24 @@ export class WebSocketService {
         };
 
         this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            console.error("WebSocket error:", error);
         };
 
         this.ws.onclose = () => {
-            console.log('WebSocket disconnected');
+            console.log("WebSocket disconnected");
             this.reconnect();
         };
     }
 
     private handleNewBlock(block: BlockInfo) {
-        console.log('New block:', block);
+        console.log("New block:", block);
         blockStore.value.handleNewBlock(block);
     }
 
     private handleNewTx(tx: TransactionInfo) {
         if (tx.transaction_type === "BlobTransaction") {
             transactionStore.value.handleNewTx(tx);
-        }  
+        }
     }
 
     private reconnect() {
@@ -80,4 +81,5 @@ export class WebSocketService {
             this.reconnectTimeout = null;
         }
     }
-} 
+}
+
