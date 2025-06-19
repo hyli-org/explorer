@@ -196,7 +196,7 @@ const blockTimeChartData = computed(() => ({
                             <h3 class="text-sm font-medium text-neutral uppercase">Total Transactions</h3>
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
-                            {{ stats?.total_transactions.toLocaleString() || transactionStore.latest.length }}
+                            {{ stats?.total_transactions.toLocaleString() || "0" }}
                         </p>
                         <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
                             <div>
@@ -224,7 +224,7 @@ const blockTimeChartData = computed(() => ({
                             -->
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
-                            #{{ blockStore.latest[0] ? blockStore.data[blockStore.latest[0]].height.toLocaleString() : "37,382" }}
+                            #{{ blockStore.latest[0] ? blockStore.data[blockStore.latest[0]].height.toLocaleString() : "0" }}
                         </p>
                         <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
                             <div>
@@ -356,7 +356,7 @@ const blockTimeChartData = computed(() => ({
                                 -->
                             </div>
                             <span class="text-xs bg-secondary/5 px-3 py-1 rounded-full text-neutral">
-                                Height {{ blockStore.latest[0] ? blockStore.data[blockStore.latest[0]].height : "37,382" }}
+                                Height {{ blockStore.latest[0] ? blockStore.data[blockStore.latest[0]].height : "0" }}
                             </span>
                         </div>
                         <div class="divide-y divide-secondary/5">
@@ -415,7 +415,7 @@ const blockTimeChartData = computed(() => ({
                                     -->
                                 </div>
                                 <span class="text-xs bg-secondary/5 px-3 py-1 rounded-full text-neutral">
-                                    {{ transactionStore.latest.length || "15" }} recent
+                                    {{ transactionStore.latest.length || "0" }} recent
                                 </span>
                             </div>
                             <div class="divide-y divide-secondary/5">
