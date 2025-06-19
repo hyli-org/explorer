@@ -360,7 +360,8 @@ watch(() => rawAddress.value, () => {
                                     <tr 
                                         v-for="transfer in filteredTransfers" 
                                         :key="transfer.id"
-                                        class="border-b border-secondary/5 hover:bg-secondary/5 transition-colors"
+                                        @click="router.push({ name: 'Transaction', params: { tx_hash: transfer.id } })"
+                                        class="border-b border-secondary/5 hover:bg-secondary/5 transition-colors cursor-pointer"
                                     >
                                         <td class="py-3 px-4">
                                             <span class="text-sm font-medium" :class="getTransferTypeColor(transfer.type)">
@@ -388,12 +389,9 @@ watch(() => rawAddress.value, () => {
                                             </span>
                                         </td>
                                         <td class="py-3 px-4">
-                                            <RouterLink 
-                                                :to="{ name: 'Transaction', params: { tx_hash: transfer.id } }"
-                                                class="text-sm text-mono font-medium truncate max-w-32 block text-primary hover:text-primary/80 hover:underline transition-colors"
-                                            >
+                                            <span class="text-sm text-mono font-medium truncate max-w-32 block text-primary">
                                                 {{ transfer.id }}
-                                            </RouterLink>
+                                            </span>
                                         </td>
                                     </tr>
                                 </tbody>
