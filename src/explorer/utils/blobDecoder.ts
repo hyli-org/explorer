@@ -7,6 +7,7 @@ import { deserializeHyleAction } from "@/model/hyle";
 import { deserializeSmtTokenAction } from "@/model/smt_token";
 import { deserializeFaucetAction } from "@/model/faucet";
 import { deserializeOrderbookAction } from "@/model/orderbook";
+import { deserializeBoardGameAction, deserializeCrashGameAction } from "@/model/orange_trail";
 
 export const parseHexToVec = (hex: string): number[] | null => {
     const tokens = hex.match(/[0-9a-f]{2}/gi);
@@ -78,6 +79,10 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
             case "secp256k1":
                 const secp256k1Blob = deserializeSecp256k1Blob(data);
                 return formatObject(secp256k1Blob);
+            case "board_game":
+                return formatObject(deserializeBoardGameAction(data));
+            case "crash_game":
+                return formatObject(deserializeCrashGameAction(data));
             case "oranj":
                 const oranjBlob = deserializeSmtTokenAction(data);
                 return formatObject(oranjBlob);

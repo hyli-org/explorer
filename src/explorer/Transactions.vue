@@ -136,9 +136,13 @@ onMounted(async () => {
                                                     :to="{ name: 'Block', params: { block_hash: tx.block_hash } }"
                                                     class="text-secondary hover:underline"
                                                 >
-                                                    {{ tx.block_hash ? `${tx.block_hash.slice(0, 8)}...` : "Pending" }}
+                                                    {{ tx.block_hash ? `${tx.block_hash.slice(0, 14)}...` : "Pending" }}
                                                 </RouterLink>
                                             </span>
+                                            <span
+                                                >Sender:
+                                                <span class="text-secondary overflow-hidden">{{ tx?.identity ?? "(unknown)" }}</span></span
+                                            >
                                             <span v-if="tx.blobs"
                                                 >Blobs: <span class="text-secondary">{{ tx.blobs.length }}</span></span
                                             >

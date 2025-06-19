@@ -174,7 +174,7 @@ export class TransactionStore {
     async getTransactionsByContract(contractName: string): Promise<string[]> {
         // Fetch transactions for this contract from the API
         const response = await fetch(
-            `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transactions/contract/${contractName}?nb_results=100&no_cache=${Date.now()}`,
+            `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transactions/contract/${contractName}?nb_results=200&no_cache=${Date.now()}`,
         );
         const transactions = await response.json();
         const txHashes = transactions.map((tx: TransactionInfo) => tx.tx_hash);

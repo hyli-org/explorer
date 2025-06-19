@@ -2,7 +2,6 @@
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import NetworkSelector from "@/explorer/components/NetworkSelector.vue";
-import Logo from "/Hyle_logo.svg";
 
 const router = useRouter();
 const route = useRoute();
@@ -62,8 +61,18 @@ const handleSearch = () => {
                         />
                     </div>
                 </div>
+                <div class="flex gap-8 items-center">
+                    <div class="hidden md:block">
+                        <RouterLink
+                            :to="{ name: 'NetworkStats' }"
+                            class="w-full py-2 px-4 rounded-xl text-secondary hover:bg-secondary/10 transition-colors text-sm block text-center"
+                        >
+                            NETWORK STATS
+                        </RouterLink>
+                    </div>
 
-                <NetworkSelector />
+                    <NetworkSelector />
+                </div>
             </div>
         </div>
     </header>

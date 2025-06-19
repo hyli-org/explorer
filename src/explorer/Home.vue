@@ -154,8 +154,8 @@ const blockTimeChartData = computed(() => ({
             <div class="mb-12 max-w-4xl mx-auto text-center">
                 <h1 class="text-4xl font-display text-primary mb-3">Explore Hyli</h1>
                 <p class="text-neutral text-lg mb-8">Search transactions, explore blocks, or discover smart contracts</p>
-                <!-- Search bar -->
-                <div class="relative bg-white/40 backdrop-blur-md rounded-2xl shadow-lg p-2">
+                <!-- Search bar, hidden for now as it doesn't actually really work. -->
+                <div class="hidden relative bg-white/40 backdrop-blur-md rounded-2xl shadow-lg p-2">
                     <input
                         v-model="searchQuery"
                         type="search"
@@ -187,7 +187,7 @@ const blockTimeChartData = computed(() => ({
             </div>
             <main class="container mx-auto px-4 py-6">
                 <!-- Stats Overview -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                     <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20">
                         <div class="flex items-center gap-3 mb-2">
                             <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -299,27 +299,39 @@ const blockTimeChartData = computed(() => ({
                         </div>
                     </div>
 
-                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20">
-                        <div class="flex items-center gap-3 mb-2">
-                            <RouterLink :to="{ name: 'NetworkStats' }" class="flex items-center gap-3 mb-2">
-                                <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                                    />
-                                </svg>
-                                <h3 class="text-sm font-medium text-neutral uppercase text-primary hover:underline transition-colors">
-                                    Network
-                                </h3>
-                            </RouterLink>
-                        </div>
-                        <p class="text-3xl font-display text-primary capitalize mb-2">{{ network }}</p>
-                        <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
-                            <div>
-                                Validators: <span class="text-secondary">{{ consensusInfo?.validators?.length || 1 }}</span>
+                    <div
+                        class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20 flex justify-between items-center"
+                    >
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-3 mb-2">
+                                <RouterLink :to="{ name: 'NetworkStats' }" class="flex items-center gap-3 mb-2">
+                                    <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                                        />
+                                    </svg>
+                                    <h3 class="text-sm font-medium text-neutral uppercase text-primary hover:underline transition-colors">
+                                        Network
+                                    </h3>
+                                </RouterLink>
                             </div>
+                            <p class="text-3xl font-display text-primary capitalize mb-2">{{ network }}</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs text-neutral">
+                                <div>
+                                    Validators: <span class="text-secondary">{{ consensusInfo?.validators?.length || 1 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidden md:block">
+                            <RouterLink
+                                :to="{ name: 'NetworkStats' }"
+                                class="w-full mt-4 py-2 px-4 rounded-xl bg-secondary/5 text-secondary hover:bg-secondary/10 transition-colors text-sm block text-center"
+                            >
+                                View in-depth<br />Stats
+                            </RouterLink>
                         </div>
                     </div>
                 </div>
@@ -520,7 +532,7 @@ const blockTimeChartData = computed(() => ({
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             <RouterLink
-                                v-for="contract_name in Object.keys(contractStore.data)"
+                                v-for="contract_name in Object.keys(contractStore.data).toSorted()"
                                 :key="contract_name"
                                 :to="{ name: 'Contract', params: { contract_name } }"
                                 class="flex items-center p-2 hover:bg-secondary/5 rounded-lg transition-colors"

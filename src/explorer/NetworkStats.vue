@@ -58,7 +58,7 @@ const validatorClusters: Array<{
             "82d0d3bc82a052c2b19ced45424c1ef6c2626d391f62243b4aecac24368082f31f36b0f691da45c38ff3f16152934f51", // Node5
         ],
         color: "#2196F3",
-        coordinates: [40.7128, -74.006] as [number, number], // New York
+        coordinates: [44.0, -120.5] as [number, number], // Oregon
         connections: ["South America", "Australia"],
     },
     {
@@ -68,7 +68,7 @@ const validatorClusters: Array<{
             "990d2627844d557cb11f2a3d9e2836826687ea7bef848496a2eefbd98b9e2ea52d39d30a1a12f06a977fb3f0ffb604b8", // Node7
         ],
         color: "#FF9800",
-        coordinates: [-33.8688, 151.2093] as [number, number], // Sydney
+        coordinates: [-30.8688, 151.2093] as [number, number], // Sydney
         connections: ["Europe", "South America"],
     },
     {
@@ -86,23 +86,23 @@ const validatorClusters: Array<{
 // Format number to human readable format (e.g., 100k, 1.2M)
 const formatNumber = (num: number): string => {
     if (num === 0) return "0";
-    
+
     const k = 1000;
-    const sizes = ['', 'k', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc'];
+    const sizes = ["", "k", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc"];
     const i = Math.floor(Math.log(num) / Math.log(k));
-    
+
     return (num / Math.pow(k, i)).toFixed(2).toLocaleString() + sizes[i];
 };
 
 // Format bytes to human readable format (e.g., 1.5 GB, 500 MB)
 const formatBytes = (bytes: number): string => {
     if (bytes === 0) return "0 B";
-    
+
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const sizes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return (bytes / Math.pow(k, i)).toFixed(2).toLocaleString() + ' ' + sizes[i];
+
+    return (bytes / Math.pow(k, i)).toFixed(2).toLocaleString() + " " + sizes[i];
 };
 
 // Compute total delegations for each validator
@@ -415,11 +415,16 @@ const handleValidatorLeave = () => {
                                             </div>
                                             <div class="grid grid-cols-2 gap-2 text-sm text-neutral">
                                                 <div>
-                                                    Balance: <span class="text-secondary">{{ formatNumber(stakingState?.fees.balances[validator]?.balance || 0) }} HYL</span>
+                                                    Balance:
+                                                    <span class="text-secondary"
+                                                        >{{ formatNumber(stakingState?.fees.balances[validator]?.balance || 0) }} HYL</span
+                                                    >
                                                 </div>
                                                 <div>
                                                     Delegated:
-                                                    <span class="text-secondary">{{ formatNumber(validatorDelegations[validator] || 0) }}</span>
+                                                    <span class="text-secondary">{{
+                                                        formatNumber(validatorDelegations[validator] || 0)
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -434,4 +439,3 @@ const handleValidatorLeave = () => {
         </div>
     </div>
 </template>
-
