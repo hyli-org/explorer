@@ -153,7 +153,17 @@ watch(() => data.value, () => {
                     <template v-if="isBlob(data)">
                         <div class="info-row">
                             <span class="info-label">TX Sender:</span>
-                            <span class="text-label">{{ data?.identity ?? "Unknown" }}</span>
+                            <div class="flex items-center gap-2">
+                                <RouterLink 
+                                    v-if="data?.identity" 
+                                    :to="{ name: 'Address', params: { address: data.identity } }" 
+                                    class="text-link"
+                                >
+                                    {{ data.identity }}
+                                </RouterLink>
+                                <span v-else class="text-label">Unknown</span>
+                                <CopyButton v-if="data?.identity" :text="data.identity" />
+                            </div>
                         </div>
                     </template>
                     <template v-else>
@@ -219,7 +229,16 @@ watch(() => data.value, () => {
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <div class="text-xs font-medium mb-1">Identity</div>
-                                            <div class="text-xs text-mono">{{ output.identity }}</div>
+                                            <div class="text-xs text-mono">
+                                                <RouterLink 
+                                                    v-if="output.identity" 
+                                                    :to="{ name: 'Address', params: { address: output.identity } }" 
+                                                    class="text-link hover:underline"
+                                                >
+                                                    {{ output.identity }}
+                                                </RouterLink>
+                                                <span v-else>{{ output.identity }}</span>
+                                            </div>
                                         </div>
                                         <div>
                                             <div class="text-xs font-medium mb-1">Result</div>

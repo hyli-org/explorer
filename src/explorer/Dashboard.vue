@@ -346,9 +346,12 @@ const selectedTokenLabel = computed(() => {
                                     >
                                         <div class="flex items-center gap-2">
                                             <span class="text-xs text-secondary w-4">{{ index + 1 }}</span>
-                                            <span class="text-sm text-mono truncate max-w-32">
+                                            <RouterLink 
+                                                :to="{ name: 'Address', params: { address: holder.address } }"
+                                                class="text-sm text-mono truncate max-w-32 text-primary hover:text-primary/80 hover:underline transition-colors"
+                                            >
                                                 {{ holder.address }}
-                                            </span>
+                                            </RouterLink>
                                         </div>
                                         <span class="text-sm font-medium text-primary">
                                             {{ formatBalance(holder.balance) }}
@@ -409,7 +412,12 @@ const selectedTokenLabel = computed(() => {
                                         >
                                             <td class="py-3 px-4 text-sm text-secondary">#{{ index + 1 }}</td>
                                             <td class="py-3 px-4">
-                                                <span class="text-sm text-mono font-medium">{{ holder.address }}</span>
+                                                <RouterLink 
+                                                    :to="{ name: 'Address', params: { address: holder.address } }"
+                                                    class="text-sm text-mono font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+                                                >
+                                                    {{ holder.address }}
+                                                </RouterLink>
                                             </td>
                                             <td class="py-3 px-4 text-right">
                                                 <span class="text-sm font-medium text-primary">
@@ -524,7 +532,12 @@ const selectedTokenLabel = computed(() => {
                                         </RouterLink>
                                     </td>
                                     <td class="py-3 px-4">
-                                        <span class="text-sm text-mono font-medium">{{ transfer.address }}</span>
+                                        <RouterLink 
+                                            :to="{ name: 'Address', params: { address: transfer.address } }"
+                                            class="text-sm text-mono font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+                                        >
+                                            {{ transfer.address }}
+                                        </RouterLink>
                                     </td>
                                     <td class="py-3 px-4 text-right">
                                         <span class="text-sm font-medium text-primary">
