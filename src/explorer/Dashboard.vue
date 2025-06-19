@@ -38,6 +38,11 @@ const transferHistory = ref<TransferHistory | null>(null);
 const transferLoading = ref(false);
 const transferError = ref('');
 
+// Contract transaction stats
+const contractTransactionStats = ref<Record<string, { total: number; unsettled: number }>>({});
+const statsLoading = ref<Record<string, boolean>>({});
+const statsError = ref<Record<string, string>>({});
+
 const router = useRouter();
 const route = useRoute();
 
@@ -76,6 +81,33 @@ const fetchContractState = async (contractName: string) => {
         error.value[contractName] = err instanceof Error ? err.message : 'Unknown error';
     } finally {
         loading.value[contractName] = false;
+    }
+};
+
+const fetchContractTransactionStats = async (contractName: string) => {
+    statsLoading.value[contractName] = true;
+    statsError.value[contractName] = '';
+    
+    try {
+        const baseUrl = getNetworkIndexerApiUrl(network.value);
+        const response = await fetch(`${baseUrl}/v1/indexer/contract/${contractName}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const total = data.total_tx || 0;
+        const unsettled = data.unsettled_tx || 0;
+        
+        contractTransactionStats.value[contractName] = { total, unsettled };
+    } catch (err) {
+        console.error(`Error fetching ${contractName} transaction stats:`, err);
+        statsError.value[contractName] = err instanceof Error ? err.message : 'Unknown error';
+        // Set default values on error
+        contractTransactionStats.value[contractName] = { total: 0, unsettled: 0 };
+    } finally {
+        statsLoading.value[contractName] = false;
     }
 };
 
@@ -196,6 +228,7 @@ watch([selectedContract, selectedToken, activeTab], () => {
 onMounted(() => {
     contracts.forEach(contract => {
         fetchContractState(contract);
+        fetchContractTransactionStats(contract);
     });
     fetchBlackjackTransfers();
     
@@ -288,9 +321,12 @@ const selectedTokenLabel = computed(() => {
                         class="data-card"
                     >
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-primary">
+                            <RouterLink 
+                                :to="{ name: 'Contract', params: { contract_name: contract } }"
+                                class="text-lg font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
+                            >
                                 {{ getContractDisplayName(contract) }}
-                            </h3>
+                            </RouterLink>
                             <div class="flex items-center gap-2">
                                 <div 
                                     v-if="loading[contract]" 
@@ -332,6 +368,24 @@ const selectedTokenLabel = computed(() => {
                                 <div class="text-sm text-secondary">Active Holders</div>
                                 <div class="text-2xl font-bold text-primary">
                                     {{ sortedHolders[contract]?.length || 0 }}
+                                </div>
+                            </div>
+
+                            <!-- Transactions Stats -->
+                            <div class="bg-secondary/5 rounded-lg p-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div class="text-sm text-secondary">Total Transactions</div>
+                                        <div class="text-xl font-bold text-primary">
+                                            {{ statsLoading[contract] ? '...' : formatBalance(contractTransactionStats[contract]?.total || 0) }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm text-secondary">Total Unsettled</div>
+                                        <div class="text-xl font-bold text-primary">
+                                            {{ statsLoading[contract] ? '...' : formatBalance(contractTransactionStats[contract]?.unsettled || 0) }}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
