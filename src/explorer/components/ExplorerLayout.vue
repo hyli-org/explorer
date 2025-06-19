@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Header from "@/explorer/Header.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 interface Tab {
     name: string;
@@ -9,13 +9,21 @@ interface Tab {
 const props = defineProps<{
     title: string;
     tabs?: Tab[];
+    activeTab?: string;
 }>();
 
 const emit = defineEmits<{
     (e: "update:activeTab", tab: string): void;
 }>();
 
-const activeTab = ref(props.tabs?.[0]?.name || "Overview");
+const activeTab = ref(props.activeTab || props.tabs?.[0]?.name || "Overview");
+
+// Watch for prop changes
+watch(() => props.activeTab, (newTab) => {
+    if (newTab && newTab !== activeTab.value) {
+        activeTab.value = newTab;
+    }
+}, { immediate: true });
 
 function setActiveTab(tab: string) {
     activeTab.value = tab;

@@ -5,13 +5,17 @@ import TransactionStatus from "@/explorer/components/TransactionStatus.vue";
 import { transactionStore, proofStore } from "@/state/data";
 import { getTimeAgo } from "@/state/utils";
 import { computed, watch, type ComputedRef, ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import type { TransactionInfo } from "@/state/transactions";
 import type { ProofInfo } from "@/state/proofs";
 import { decodeBlobData } from "@/explorer/utils/blobDecoder";
 
 const route = useRoute();
+const router = useRouter();
 const tx_hash = computed(() => route.params.tx_hash as string);
+
+// Initialize active tab from URL or default
+const activeTab = ref(route.query.tab as string || 'Overview');
 
 const loadData = async () => {
     // Try to load from both stores - the appropriate one will have the data
@@ -44,6 +48,33 @@ const tabs = computed(() => {
     return [{ name: "Overview" }, { name: "Blobs" }, { name: "Events" }, { name: "Raw JSON" }];
 });
 
+// Update URL when tab changes
+const updateURL = () => {
+    const query: Record<string, string> = {};
+    
+    if (activeTab.value !== 'Overview') {
+        query.tab = activeTab.value;
+    }
+    
+    router.replace({ 
+        name: 'Transaction', 
+        params: { tx_hash: tx_hash.value },
+        query: Object.keys(query).length > 0 ? query : undefined 
+    });
+};
+
+// Watch for tab changes and update URL (but not immediately on mount)
+let isInitialized = false;
+watch(activeTab, () => {
+    if (isInitialized) {
+        updateURL();
+    }
+}, { immediate: false });
+
+const handleTabChange = (tab: string) => {
+    activeTab.value = tab;
+};
+
 const formatTimestamp = (date: number) => {
     return `${getTimeAgo(date)} (${new Date(date).toLocaleString()})`;
 };
@@ -70,10 +101,24 @@ const toggleRawData = (index: number) => {
         rawDataBlobs.value.add(index);
     }
 };
+
+// Mark as initialized after mount to prevent immediate URL updates
+watch(() => data.value, () => {
+    if (data.value && !isInitialized) {
+        setTimeout(() => {
+            isInitialized = true;
+        }, 100);
+    }
+}, { immediate: true });
 </script>
 
 <template>
-    <ExplorerLayout :title="isBlob() ? 'Transaction Details' : 'Proof Details'" :tabs="tabs">
+    <ExplorerLayout 
+        :title="isBlob() ? 'Transaction Details' : 'Proof Details'" 
+        :tabs="tabs"
+        :active-tab="activeTab"
+        @update:active-tab="handleTabChange"
+    >
         <template #default="{ activeTab }">
             <div v-if="activeTab === 'Overview'" class="data-card">
                 <div class="divide-y divide-secondary/5">

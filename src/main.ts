@@ -10,6 +10,7 @@ import Blocks from "./explorer/Blocks.vue";
 import Transactions from "./explorer/Transactions.vue";
 import Proofs from "./explorer/Proofs.vue";
 import NetworkStats from "./explorer/NetworkStats.vue";
+import Dashboard from "./explorer/Dashboard.vue";
 
 const routes = [
     { path: "/", component: Home, name: "Home" },
@@ -47,6 +48,11 @@ const routes = [
         path: "/network-stats",
         component: NetworkStats,
         name: "NetworkStats",
+    },
+    {
+        path: "/dashboard",
+        component: Dashboard,
+        name: "Dashboard",
     },
 ];
 

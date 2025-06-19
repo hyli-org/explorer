@@ -53,3 +53,11 @@ export const getNetworkWebSocketUrl = (network: string) => {
         testnet: "wss://indexer.testnet.hyli.org",
     }[network];
 };
+
+export const getNetworkWalletApiUrl = (network: string) => {
+    return {
+        localhost: "http://localhost:4000",
+        devnet: "https://wallet.devnet.hyli.org",
+        testnet: "https://wallet.testnet.hyli.org",
+    }[network];
+};

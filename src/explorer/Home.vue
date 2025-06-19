@@ -526,9 +526,17 @@ const blockTimeChartData = computed(() => ({
                     <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20 md:col-span-2">
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-lg font-medium text-primary">Smart Contracts</h2>
-                            <span class="text-xs bg-secondary/5 px-3 py-1 rounded-full text-neutral">
-                                {{ Object.keys(contractStore.data).length }} total
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <RouterLink
+                                    :to="{ name: 'Dashboard' }"
+                                    class="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full hover:bg-primary/20 transition-colors"
+                                >
+                                    Token Dashboard
+                                </RouterLink>
+                                <span class="text-xs bg-secondary/5 px-3 py-1 rounded-full text-neutral">
+                                    {{ Object.keys(contractStore.data).length }} total
+                                </span>
+                            </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             <RouterLink
