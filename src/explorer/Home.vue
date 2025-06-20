@@ -314,7 +314,7 @@ const blockTimeChartData = computed(() => ({
                                     />
                                 </svg>
                                 <h3 class="text-sm font-medium text-neutral uppercase text-primary hover:underline transition-colors">
-                                    Network
+                                    Data
                                 </h3>
                             </RouterLink>
                         </div>
