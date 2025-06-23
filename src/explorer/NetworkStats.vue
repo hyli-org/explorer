@@ -351,7 +351,7 @@ const handleValidatorLeave = () => {
 
                 <!-- Staking State -->
                 <div
-                    v-if="network === 'testnet'"
+                    v-if="network === 'testnet' || network === 'localhost'"
                     class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20 mb-8"
                 >
                     <div class="flex items-center gap-3 mb-4">
@@ -383,17 +383,20 @@ const handleValidatorLeave = () => {
 
                         <div class="space-y-4">
                             <div class="text-sm text-neutral">Validator Balances & Data Dissemination</div>
-                            <div class="space-y-6">
+
+                            <!-- Testnet version with clusters -->
+                            <div v-if="network === 'testnet'" class="space-y-6">
                                 <div v-for="cluster in validatorClusters" :key="cluster.name" class="space-y-3">
                                     <div class="flex items-center gap-2">
                                         <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: cluster.color }"></div>
                                         <h3 class="text-lg font-medium text-primary">{{ cluster.name }}</h3>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div
+                                        <RouterLink
                                             v-for="validator in cluster.validators"
                                             :key="validator"
-                                            class="bg-secondary/5 rounded-lg p-4"
+                                            :to="{ name: 'ValidatorDetail', params: { validator_id: validator } }"
+                                            class="bg-secondary/5 rounded-lg p-4 block hover:bg-secondary/10 transition-colors cursor-pointer"
                                             @mouseenter="handleValidatorHover(validator)"
                                             @mouseleave="handleValidatorLeave()"
                                         >
@@ -427,8 +430,49 @@ const handleValidatorLeave = () => {
                                                     }}</span>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </RouterLink>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Localhost version without clusters -->
+                            <div v-if="network === 'localhost'" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <RouterLink
+                                        v-for="validator in Object.keys(stakingState.delegations)"
+                                        :key="validator"
+                                        :to="{ name: 'ValidatorDetail', params: { validator_id: validator } }"
+                                        class="bg-secondary/5 rounded-lg p-4 block hover:bg-secondary/10 transition-colors cursor-pointer"
+                                    >
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="text-sm font-mono text-neutral truncate max-w-[200px]">
+                                                {{ validator.slice(0, 10) }}...{{ validator.slice(-6) }}
+                                            </div>
+                                            <div class="text-sm text-primary">
+                                                Disseminated: {{ formatBytes(stakingState?.fees.balances[validator]?.cumul_size || 0) }}
+                                            </div>
+                                        </div>
+                                        <div class="w-full bg-white/20 rounded-full h-2 mb-2">
+                                            <div
+                                                class="bg-primary h-2 rounded-full transition-all duration-300"
+                                                :style="{
+                                                    width: `${(stakingState?.fees.balances[validator]?.balance / Math.max(...Object.values(stakingState?.fees.balances || {}).map((b) => b.balance))) * 100}%`,
+                                                }"
+                                            ></div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2 text-sm text-neutral">
+                                            <div>
+                                                Balance:
+                                                <span class="text-secondary"
+                                                    >{{ formatNumber(stakingState?.fees.balances[validator]?.balance || 0) }} HYL</span
+                                                >
+                                            </div>
+                                            <div>
+                                                Stake:
+                                                <span class="text-secondary">{{ formatNumber(stakingState.stakes[validator] || 0) }}</span>
+                                            </div>
+                                        </div>
+                                    </RouterLink>
                                 </div>
                             </div>
                         </div>
