@@ -21,9 +21,9 @@ interface DataProposal {
 
 const route = useRoute();
 const router = useRouter();
-const validatorId = computed(() => route.params.validator_id as string);
+const laneManagerId = computed(() => route.params.validator_id as string);
 
-const validatorInfo = ref<{
+const laneManagerInfo = ref<{
     id: string;
     balance: number;
     cumul_size: number;
@@ -53,34 +53,34 @@ const formatBytes = (bytes: number): string => {
     return (bytes / Math.pow(k, i)).toFixed(2) + " " + sizes[i];
 };
 
-const fetchValidatorInfo = async () => {
+const fetchLaneManagerInfo = async () => {
     try {
         const response = await fetch(getNetworkNodeApiUrl(network.value) + `/v1/consensus/staking_state?no_cache=${Date.now()}`);
         const stakingState = await response.json();
 
-        if (stakingState?.fees?.balances[validatorId.value]) {
-            validatorInfo.value = {
-                id: validatorId.value,
-                balance: stakingState.fees.balances[validatorId.value].balance,
-                cumul_size: stakingState.fees.balances[validatorId.value].cumul_size,
+        if (stakingState?.fees?.balances[laneManagerId.value]) {
+            laneManagerInfo.value = {
+                id: laneManagerId.value,
+                balance: stakingState.fees.balances[laneManagerId.value].balance,
+                cumul_size: stakingState.fees.balances[laneManagerId.value].cumul_size,
                 delegated: 0, // TODO: Calculate delegated amount
             };
         }
     } catch (err) {
-        console.error("Error fetching validator info:", err);
-        error.value = "Failed to fetch validator information";
+        console.error("Error fetching lane manager info:", err);
+        error.value = "Failed to fetch lane manager information";
     }
 };
 
 const fetchDataProposals = async () => {
     try {
         const response = await fetch(
-            getNetworkIndexerApiUrl(network.value) + `/v1/indexer/data_proposals/lane/${validatorId.value}?no_cache=${Date.now()}`,
+            getNetworkIndexerApiUrl(network.value) + `/v1/indexer/data_proposals/lane/${laneManagerId.value}?no_cache=${Date.now()}`,
         );
         if (response.ok) {
             dataProposals.value = await response.json();
         } else {
-            console.warn("No data proposals found for this validator");
+            console.warn("No data proposals found for this lane manager");
         }
     } catch (err) {
         console.error("Error fetching data proposals:", err);
@@ -125,7 +125,7 @@ const toggleProposal = async (proposalHash: string) => {
 onMounted(async () => {
     loading.value = true;
     try {
-        await Promise.all([fetchValidatorInfo(), fetchDataProposals()]);
+        await Promise.all([fetchLaneManagerInfo(), fetchDataProposals()]);
     } finally {
         loading.value = false;
     }
@@ -152,12 +152,12 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
                         </svg>
                     </button>
                     <div>
-                        <h1 class="text-4xl font-display text-primary mb-3">Validator Details</h1>
-                        <p class="text-neutral text-lg">Comprehensive information about validator activity</p>
+                        <h1 class="text-4xl font-display text-primary mb-3">Lane Manager Details</h1>
+                        <p class="text-neutral text-lg">Comprehensive information about lane manager activity</p>
                     </div>
                 </div>
 
-                <!-- Validator ID -->
+                <!-- Lane Manager ID -->
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20">
                     <div class="flex items-center gap-3 mb-2">
                         <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -168,11 +168,11 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                         </svg>
-                        <h3 class="text-sm font-medium text-neutral uppercase">Validator ID</h3>
+                        <h3 class="text-sm font-medium text-neutral uppercase">Lane Manager ID</h3>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="font-mono text-sm text-secondary break-all">{{ validatorId }}</span>
-                        <CopyButton :text="validatorId" />
+                        <span class="font-mono text-sm text-secondary break-all">{{ laneManagerId }}</span>
+                        <CopyButton :text="laneManagerId" />
                     </div>
                 </div>
             </div>
@@ -190,7 +190,7 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
 
                 <!-- Content -->
                 <div v-else class="space-y-8">
-                    <!-- Validator Stats -->
+                    <!-- Lane Manager Stats -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20">
                             <div class="flex items-center gap-3 mb-2">
@@ -205,7 +205,7 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
                                 <h3 class="text-sm font-medium text-neutral uppercase">Balance</h3>
                             </div>
                             <p class="text-3xl font-display text-primary">
-                                {{ validatorInfo ? formatNumber(validatorInfo.balance) : "0" }} HYL
+                                {{ laneManagerInfo ? formatNumber(laneManagerInfo.balance) : "0" }} HYL
                             </p>
                         </div>
 
@@ -222,7 +222,7 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
                                 <h3 class="text-sm font-medium text-neutral uppercase">Data Disseminated</h3>
                             </div>
                             <p class="text-3xl font-display text-primary">
-                                {{ validatorInfo ? formatBytes(validatorInfo.cumul_size) : "0 B" }}
+                                {{ laneManagerInfo ? formatBytes(laneManagerInfo.cumul_size) : "0 B" }}
                             </p>
                         </div>
 
@@ -270,7 +270,7 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
                         </div>
 
                         <div v-if="dataProposals.length === 0" class="text-center py-8 text-neutral">
-                            No data proposals found for this validator
+                            No data proposals found for this lane manager
                         </div>
 
                         <div v-else class="space-y-4">
