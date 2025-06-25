@@ -12,7 +12,7 @@ import Proofs from "./explorer/Proofs.vue";
 import NetworkStats from "./explorer/NetworkStats.vue";
 import Dashboard from "./explorer/Dashboard.vue";
 import Address from "./explorer/Address.vue";
-import ValidatorDetail from "./explorer/ValidatorDetail.vue";
+import LaneManagerDetail from "./explorer/LaneManagerDetail.vue";
 
 const routes = [
     { path: "/", component: Home, name: "Home" },
@@ -62,9 +62,9 @@ const routes = [
         name: "Address",
     },
     {
-        path: "/validator/:validator_id",
-        component: ValidatorDetail,
-        name: "ValidatorDetail",
+        path: "/lane-manager/:lane_manager_id",
+        component: LaneManagerDetail,
+        name: "LaneManagerDetail",
     },
 ];
 

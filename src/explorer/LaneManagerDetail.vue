@@ -21,7 +21,7 @@ interface DataProposal {
 
 const route = useRoute();
 const router = useRouter();
-const laneManagerId = computed(() => route.params.validator_id as string);
+const laneManagerId = computed(() => route.params.lane_manager_id as string);
 
 const laneManagerInfo = ref<{
     id: string;
@@ -34,6 +34,7 @@ const dataProposals = ref<DataProposal[]>([]);
 const loading = ref(false);
 const error = ref("");
 const expandedProposals = ref<Set<string>>(new Set());
+const loadingTransactions = ref<Set<string>>(new Set());
 
 // Format number to human readable format
 const formatNumber = (num: number): string => {
@@ -79,6 +80,8 @@ const fetchDataProposals = async () => {
         );
         if (response.ok) {
             dataProposals.value = await response.json();
+            // Charger automatiquement les transactions pour chaque data proposal
+            await fetchAllProposalTransactions();
         } else {
             console.warn("No data proposals found for this lane manager");
         }
@@ -87,7 +90,20 @@ const fetchDataProposals = async () => {
     }
 };
 
+const fetchAllProposalTransactions = async () => {
+    // Charger les transactions pour tous les data proposals en parallèle
+    const promises = dataProposals.value.map((proposal) => fetchProposalTransactions(proposal.hash));
+    await Promise.all(promises);
+};
+
 const fetchProposalTransactions = async (proposalHash: string) => {
+    // Éviter les appels multiples pour le même proposal
+    if (loadingTransactions.value.has(proposalHash)) {
+        return;
+    }
+
+    loadingTransactions.value.add(proposalHash);
+
     try {
         const response = await fetch(
             getNetworkIndexerApiUrl(network.value) + `/v1/indexer/data_proposal/hash/${proposalHash}/transactions?no_cache=${Date.now()}`,
@@ -103,22 +119,31 @@ const fetchProposalTransactions = async (proposalHash: string) => {
                     transactionStore.value.data[tx.tx_hash] = tx;
                 });
             }
+        } else {
+            console.warn(`No transactions found for proposal ${proposalHash}`);
+            // Marquer comme tableau vide pour éviter de refaire l'appel
+            const proposal = dataProposals.value.find((p) => p.hash === proposalHash);
+            if (proposal) {
+                proposal.transactions = [];
+            }
         }
     } catch (err) {
         console.error("Error fetching proposal transactions:", err);
+        // Marquer comme tableau vide en cas d'erreur pour éviter de refaire l'appel
+        const proposal = dataProposals.value.find((p) => p.hash === proposalHash);
+        if (proposal) {
+            proposal.transactions = [];
+        }
+    } finally {
+        loadingTransactions.value.delete(proposalHash);
     }
 };
 
-const toggleProposal = async (proposalHash: string) => {
+const toggleProposal = (proposalHash: string) => {
     if (expandedProposals.value.has(proposalHash)) {
         expandedProposals.value.delete(proposalHash);
     } else {
         expandedProposals.value.add(proposalHash);
-        // Fetch transactions for this proposal if not already loaded
-        const proposal = dataProposals.value.find((p) => p.hash === proposalHash);
-        if (proposal && !proposal.transactions) {
-            await fetchProposalTransactions(proposalHash);
-        }
     }
 };
 
@@ -131,9 +156,10 @@ onMounted(async () => {
     }
 });
 
-// Computed properties for statistics
-const totalProposals = computed(() => dataProposals.value.length);
-const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => sum + p.tx_count, 0));
+// Computed properties for filtering and statistics
+const filteredDataProposals = computed(() => dataProposals.value.filter((proposal) => proposal.block_height !== 0));
+const totalProposals = computed(() => filteredDataProposals.value.length);
+const totalTransactions = computed(() => filteredDataProposals.value.reduce((sum, p) => sum + p.tx_count, 0));
 </script>
 
 <template>
@@ -269,13 +295,13 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
                             <span class="text-sm bg-secondary/5 px-3 py-1 rounded-full text-neutral"> {{ totalProposals }} total </span>
                         </div>
 
-                        <div v-if="dataProposals.length === 0" class="text-center py-8 text-neutral">
+                        <div v-if="filteredDataProposals.length === 0" class="text-center py-8 text-neutral">
                             No data proposals found for this lane manager
                         </div>
 
                         <div v-else class="space-y-4">
                             <div
-                                v-for="proposal in dataProposals"
+                                v-for="proposal in filteredDataProposals"
                                 :key="proposal.hash"
                                 class="border border-secondary/10 rounded-lg overflow-hidden"
                             >
@@ -372,16 +398,37 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
                                     </div>
 
                                     <!-- Transactions -->
-                                    <div v-if="proposal.transactions && proposal.transactions.length > 0">
+                                    <div class="mt-4">
                                         <h4 class="text-sm font-medium text-neutral mb-3">
-                                            Transactions ({{ proposal.transactions.length }})
+                                            Transactions
+                                            <span v-if="proposal.transactions" class="text-primary"
+                                                >({{ proposal.transactions.length }})</span
+                                            >
+                                            <span v-else-if="loadingTransactions.has(proposal.hash)" class="text-neutral"
+                                                >(Loading...)</span
+                                            >
+                                            <span v-else class="text-neutral">({{ proposal.tx_count }})</span>
                                         </h4>
-                                        <div class="divide-y divide-secondary/5 max-h-64 overflow-y-auto">
+
+                                        <!-- État de chargement -->
+                                        <div
+                                            v-if="loadingTransactions.has(proposal.hash)"
+                                            class="flex items-center gap-2 text-sm text-neutral py-4"
+                                        >
+                                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                            Loading transactions...
+                                        </div>
+
+                                        <!-- Transactions chargées -->
+                                        <div
+                                            v-else-if="proposal.transactions && proposal.transactions.length > 0"
+                                            class="divide-y divide-secondary/5 max-h-64 overflow-y-auto border border-secondary/10 rounded-lg"
+                                        >
                                             <RouterLink
                                                 v-for="transaction in proposal.transactions"
                                                 :key="transaction.tx_hash"
                                                 :to="{ name: 'Transaction', params: { tx_hash: transaction.tx_hash } }"
-                                                class="block hover:bg-secondary/5 rounded-lg transition-colors"
+                                                class="block hover:bg-secondary/5 transition-colors"
                                             >
                                                 <div class="flex items-center py-3 px-4">
                                                     <div class="flex-1">
@@ -417,14 +464,18 @@ const totalTransactions = computed(() => dataProposals.value.reduce((sum, p) => 
                                                 </div>
                                             </RouterLink>
                                         </div>
-                                    </div>
-                                    <div v-else-if="proposal.transactions && proposal.transactions.length === 0">
-                                        <p class="text-sm text-neutral">No transactions found for this proposal</p>
-                                    </div>
-                                    <div v-else>
-                                        <div class="flex items-center gap-2 text-sm text-neutral">
-                                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                                            Loading transactions...
+
+                                        <!-- Aucune transaction trouvée -->
+                                        <div
+                                            v-else-if="proposal.transactions && proposal.transactions.length === 0"
+                                            class="text-sm text-neutral py-4 px-4 bg-secondary/5 rounded-lg"
+                                        >
+                                            No transactions found for this proposal
+                                        </div>
+
+                                        <!-- État d'erreur ou pas encore chargé -->
+                                        <div v-else class="text-sm text-neutral py-4 px-4 bg-yellow-50 rounded-lg">
+                                            Transactions data not available
                                         </div>
                                     </div>
                                 </div>

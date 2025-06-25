@@ -395,7 +395,7 @@ const handleValidatorLeave = () => {
                                         <RouterLink
                                             v-for="validator in cluster.validators"
                                             :key="validator"
-                                            :to="{ name: 'ValidatorDetail', params: { validator_id: validator } }"
+                                            :to="{ name: 'LaneManagerDetail', params: { lane_manager_id: validator } }"
                                             class="bg-secondary/5 rounded-lg p-4 block hover:bg-secondary/10 transition-colors cursor-pointer"
                                             @mouseenter="handleValidatorHover(validator)"
                                             @mouseleave="handleValidatorLeave()"
@@ -441,7 +441,7 @@ const handleValidatorLeave = () => {
                                     <RouterLink
                                         v-for="validator in Object.keys(stakingState.delegations)"
                                         :key="validator"
-                                        :to="{ name: 'ValidatorDetail', params: { validator_id: validator } }"
+                                        :to="{ name: 'LaneManagerDetail', params: { lane_manager_id: validator } }"
                                         class="bg-secondary/5 rounded-lg p-4 block hover:bg-secondary/10 transition-colors cursor-pointer"
                                     >
                                         <div class="flex items-center justify-between mb-2">
