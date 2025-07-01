@@ -32,6 +32,13 @@ export const persistentRef = <T>(key: string, initialValue: T) => {
 
 export const network = persistentRef("network", "testnet");
 
+watchEffect(() => {
+    if (network.value !== "localhost" && network.value !== "testnet") {
+        // Default to testnet if an unsupported network is set
+        network.value = "testnet";
+    }
+});
+
 export const getNetworkIndexerApiUrl = (network: string) => {
     return {
         localhost: "http://localhost:4321",
