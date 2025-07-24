@@ -12,6 +12,7 @@ import Proofs from "./explorer/Proofs.vue";
 import NetworkStats from "./explorer/NetworkStats.vue";
 import Dashboard from "./explorer/Dashboard.vue";
 import Address from "./explorer/Address.vue";
+import LaneManagerDetail from "./explorer/LaneManagerDetail.vue";
 
 const routes = [
     { path: "/", component: Home, name: "Home" },
@@ -59,6 +60,11 @@ const routes = [
         path: "/address/:address",
         component: Address,
         name: "Address",
+    },
+    {
+        path: "/lane-manager/:lane_manager_id",
+        component: LaneManagerDetail,
+        name: "LaneManagerDetail",
     },
 ];
 
