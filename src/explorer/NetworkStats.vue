@@ -325,7 +325,7 @@ const handleValidatorLeave = () => {
 
                 <!-- Network Decentralization -->
                 <div
-                    v-if="network === 'testnet'"
+                    v-if="network === 'first-testnet'"
                     class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20 mb-8"
                 >
                     <div class="flex items-center gap-3 mb-4">
@@ -351,7 +351,7 @@ const handleValidatorLeave = () => {
 
                 <!-- Staking State -->
                 <div
-                    v-if="network === 'testnet'"
+                    v-if="network === 'first-testnet'"
                     class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-white/20 mb-8"
                 >
                     <div class="flex items-center gap-3 mb-4">

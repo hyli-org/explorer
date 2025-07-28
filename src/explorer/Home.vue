@@ -2,7 +2,7 @@
 import Header from "@/explorer/Header.vue";
 import { blockStore, contractStore, transactionStore, proofStore } from "@/state/data";
 import { getNetworkNodeApiUrl, getNetworkIndexerApiUrl, getNetworkWebSocketUrl, network } from "@/state/network";
-import { onMounted, ref, computed, onUnmounted } from "vue";
+import { onMounted, ref, computed, onUnmounted, watchEffect } from "vue";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
 import NetworkChart from "@/explorer/components/NetworkChart.vue";
 import { useRouter } from "vue-router";
@@ -53,10 +53,15 @@ const fetchProofStats = async () => {
     proofStats.value = await response.json();
 };
 
+watchEffect(() => {
+    if (network.value) {
+        fetchStats();
+        fetchProofStats();
+        fetchConsensusInfo();
+    }
+});
+
 onMounted(() => {
-    fetchConsensusInfo();
-    fetchStats();
-    fetchProofStats();
     wsService.value = new WebSocketService(getNetworkWebSocketUrl(network.value) + "/ws");
     wsService.value.connect();
 });
