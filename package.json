@@ -1,43 +1,43 @@
 {
-    "name": "hyleou",
-    "private": true,
-    "version": "0.0.1",
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "preview": "vite preview"
-    },
-    "dependencies": {
-        "@cosmjs/proto-signing": "^0.32.4",
-        "@cosmjs/stargate": "^0.32.4",
-        "@noir-lang/backend_barretenberg": "^0.30.0",
-        "@noir-lang/noir_js": "^0.30.0",
-        "@types/three": "^0.177.0",
-        "@vueuse/core": "^13.3.0",
-        "asn1.js": "^5.4.1",
-        "chart.js": "^4.4.8",
-        "dotenv": "^16.4.7",
-        "face-api.js": "^0.22.2",
-        "hyle": "^0.2.4",
-        "pkijs": "^3.2.5",
-        "protobufjs": "^7.4.0",
-        "rollup-plugin-copy": "^3.5.0",
-        "three": "^0.177.0",
-        "vue": "^3.5.13",
-        "vue-chartjs": "^5.3.2",
-        "vue-router": "^4.5.0"
-    },
-    "devDependencies": {
-        "@vitejs/plugin-vue": "^5.2.3",
-        "autoprefixer": "^10.4.21",
-        "postcss": "^8.5.3",
-        "prettier": "3.3.1",
-        "rollup-plugin-analyzer": "^4.0.0",
-        "rollup-plugin-visualizer": "^5.14.0",
-        "tailwindcss": "^3.4.17",
-        "typescript": "^5.8.2",
-        "vite": "^5.4.16",
-        "vue-tsc": "^2.2.8"
-    }
+  "name": "hyliou",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@cosmjs/proto-signing": "^0.32.4",
+    "@cosmjs/stargate": "^0.32.4",
+    "@noir-lang/backend_barretenberg": "^0.30.0",
+    "@noir-lang/noir_js": "^0.30.0",
+    "@types/three": "^0.177.0",
+    "@vueuse/core": "^13.8.0",
+    "asn1.js": "^5.4.1",
+    "chart.js": "^4.5.0",
+    "dotenv": "^16.6.1",
+    "face-api.js": "^0.22.2",
+    "hyli": "^0.4.0",
+    "pkijs": "^3.2.5",
+    "protobufjs": "^7.5.4",
+    "rollup-plugin-copy": "^3.5.0",
+    "three": "^0.177.0",
+    "vue": "^3.5.20",
+    "vue-chartjs": "^5.3.2",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "prettier": "3.3.1",
+    "rollup-plugin-analyzer": "^4.0.0",
+    "rollup-plugin-visualizer": "^5.14.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.2",
+    "vite": "^5.4.19",
+    "vue-tsc": "^2.2.12"
+  }
 }

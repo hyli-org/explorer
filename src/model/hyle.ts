@@ -1,5 +1,5 @@
 import { BorshSchema, borshDeserialize } from "borsher";
-import { StructuredBlobData, structuredBlobDataSchema } from "hyle";
+import { StructuredBlobData, structuredBlobDataSchema } from "hyli";
 
 export type TimeoutWindow = { NoTimeout: {} } | { Timeout: number };
 
@@ -15,7 +15,7 @@ export interface DeleteContractAction {
     contract_name: string;
 }
 
-export const deserializeHyleAction = (
+export const deserializeHyliAction = (
     data: number[],
 ): StructuredBlobData<RegisterContractAction> | StructuredBlobData<DeleteContractAction> => {
     try {
@@ -25,7 +25,7 @@ export const deserializeHyleAction = (
         try {
             return deserializeDeleteContractAction(data);
         } catch (e) {
-            throw new Error("Failed to deserialize Hyle action");
+            throw new Error("Failed to deserialize Hyli action");
         }
     }
 };

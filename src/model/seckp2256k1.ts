@@ -1,5 +1,5 @@
 import { borshSerialize, BorshSchema, borshDeserialize } from "borsher";
-import { Blob, Identity } from "hyle";
+import { Blob, Identity } from "hyli";
 
 export const secp256k1ContractName = "secp256k1";
 

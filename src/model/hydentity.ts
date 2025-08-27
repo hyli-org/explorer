@@ -1,5 +1,5 @@
 import { borshSerialize, BorshSchema, borshDeserialize } from "borsher";
-import { Blob } from "hyle";
+import { Blob } from "hyli";
 
 export const hydentityContractName = "hydentity";
 

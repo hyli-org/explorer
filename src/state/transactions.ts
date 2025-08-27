@@ -1,6 +1,6 @@
 import { getNetworkIndexerApiUrl } from "@/state/network";
 
-export type HyleOutput = {
+export type HyliOutput = {
     blobs: number[];
     identity: string;
     index: number;
@@ -17,7 +17,7 @@ export type HyleOutput = {
 export type BlobInfo = {
     contract_name: string;
     data: string;
-    proof_outputs: HyleOutput[];
+    proof_outputs: HyliOutput[];
 };
 
 export type EventInfo = {

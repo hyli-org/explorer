@@ -1,5 +1,5 @@
 import {  BorshSchema, borshDeserialize } from "borsher";
-import {  StructuredBlobData, structuredBlobDataSchema } from "hyle";
+import {  StructuredBlobData, structuredBlobDataSchema } from "hyli";
 
 export const blackjackContractName = "blackjack";
 
