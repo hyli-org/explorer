@@ -1,9 +1,9 @@
-import * as hyle from "hyle/model";
+import * as hyli from "hyli/model";
 import { deserializeHydentityAction } from "@/model/hydentity";
 import { deserializeBlackJackAction } from "@/model/blackjack";
 import { deserializeSecp256k1Blob } from "@/model/seckp2256k1";
 import { deserializeWalletAction } from "@/model/wallet";
-import { deserializeHyleAction } from "@/model/hyle";
+import { deserializeHyliAction } from "@/model/hyli";
 import { deserializeSmtTokenAction } from "@/model/smt_token";
 import { deserializeFaucetAction } from "@/model/faucet";
 import { deserializeOrderbookAction } from "@/model/orderbook";
@@ -58,17 +58,17 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
         if (data === null) return "Invalid hex data";
 
         switch (contractName) {
-            case "hyle":
-                const hyleAction = deserializeHyleAction(data);
-                return formatObject(hyleAction);
+            case "hyli":
+                const hyliAction = deserializeHyleAction(data);
+                return formatObject(hyliAction);
             case "hyllar":
-                const erc20Action = hyle.token.deserializeERC20Action(data);
+                const erc20Action = hyli.token.deserializeERC20Action(data);
                 return formatObject(erc20Action);
             case "amm":
-                const ammAction = hyle.amm.deserializeAmmAction(data);
+                const ammAction = hyli.amm.deserializeAmmAction(data);
                 return formatObject(ammAction);
             case "mmid":
-                const identityAction = hyle.mmid.deserializeIdentityAction(data);
+                const identityAction = hyli.mmid.deserializeIdentityAction(data);
                 return formatObject(identityAction);
             case "hydentity":
                 const hydentityAction = deserializeHydentityAction(data);
@@ -96,7 +96,7 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
                 const faucetBlob = deserializeFaucetAction(data);
                 return formatObject(faucetBlob);
             case "staking":
-                const stakingAction = hyle.staking.deserializeStakingAction(data);
+                const stakingAction = hyli.staking.deserializeStakingAction(data);
                 return formatObject(stakingAction);
             case "check_secret":
                 return `Check secret for hash ${hex}`;

@@ -1,5 +1,5 @@
 import { BorshSchema, borshDeserialize } from "borsher";
-import { Identity, structuredBlobDataSchema } from "hyle";
+import { Identity, structuredBlobDataSchema } from "hyli";
 
 // --- Types ---
 
