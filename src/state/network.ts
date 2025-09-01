@@ -75,10 +75,15 @@ export const persistentRef = <T>(key: string, initialValue: T): Ref<T> => {
     return dataRef as any;
 };
 
-export const network = persistentRef("network", "devnet" as "localhost" | "first-testnet" | "devnet");
+export const network = persistentRef("network", "devnet" as "localhost" | "testnet-kkt" | "first-testnet" | "devnet");
 
 watchEffect(() => {
-    if (network.value !== "localhost" && network.value !== "first-testnet" && network.value !== "devnet") {
+    if (
+        network.value !== "localhost" &&
+        network.value !== "first-testnet" &&
+        network.value !== "devnet" &&
+        network.value !== "testnet-kkt"
+    ) {
         // Default to devnet if an unsupported network is set
         network.value = "devnet";
     }
@@ -91,7 +96,8 @@ export const getNetworkIndexerApiUrl = (network: string) => {
     }
     return {
         devnet: "https://indexer.devnet.hyli.org",
-        "first-testnet": "https://indexer.testnet.hyli.org",
+        "testnet-kkt": "https://indexer.testnet.hyli.org",
+        "first-testnet": "https://first.testnet.hyli.org",
     }[network];
 };
 
@@ -102,7 +108,8 @@ export const getNetworkNodeApiUrl = (network: string) => {
     }
     return {
         devnet: "https://node.devnet.hyli.org",
-        "first-testnet": "https://node.testnet.hyli.org",
+        "testnet-kkt": "https://node.testnet.hyli.org",
+        "first-testnet": "https://doesnotexist.testnet.hyli.org",
     }[network];
 };
 
@@ -113,7 +120,8 @@ export const getNetworkWebSocketUrl = (network: string) => {
     }
     return {
         devnet: "wss://indexer.devnet.hyli.org",
-        "first-testnet": "wss://indexer.testnet.hyli.org",
+        "testnet-kkt": "wss://indexer.testnet.hyli.org",
+        "first-testnet": "wss://first.testnet.hyli.org",
     }[network];
 };
 
@@ -124,6 +132,7 @@ export const getNetworkWalletApiUrl = (network: string) => {
     }
     return {
         devnet: "https://wallet.devnet.hyli.org",
+        "testnet-kkt": "https://wallet.testnet.hyli.org",
         "first-testnet": "https://wallet.testnet.hyli.org",
     }[network];
 };
