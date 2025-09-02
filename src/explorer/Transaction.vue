@@ -15,7 +15,7 @@ const router = useRouter();
 const tx_hash = computed(() => route.params.tx_hash as string);
 
 // Initialize active tab from URL or default
-const activeTab = ref(route.query.tab as string || 'Overview');
+const activeTab = ref((route.query.tab as string) || "Overview");
 
 const loadData = async () => {
     // Try to load from both stores - the appropriate one will have the data
@@ -51,25 +51,29 @@ const tabs = computed(() => {
 // Update URL when tab changes
 const updateURL = () => {
     const query: Record<string, string> = {};
-    
-    if (activeTab.value !== 'Overview') {
+
+    if (activeTab.value !== "Overview") {
         query.tab = activeTab.value;
     }
-    
-    router.replace({ 
-        name: 'Transaction', 
+
+    router.replace({
+        name: "Transaction",
         params: { tx_hash: tx_hash.value },
-        query: Object.keys(query).length > 0 ? query : undefined 
+        query: Object.keys(query).length > 0 ? query : undefined,
     });
 };
 
 // Watch for tab changes and update URL (but not immediately on mount)
 let isInitialized = false;
-watch(activeTab, () => {
-    if (isInitialized) {
-        updateURL();
-    }
-}, { immediate: false });
+watch(
+    activeTab,
+    () => {
+        if (isInitialized) {
+            updateURL();
+        }
+    },
+    { immediate: false },
+);
 
 const handleTabChange = (tab: string) => {
     activeTab.value = tab;
@@ -103,18 +107,22 @@ const toggleRawData = (index: number) => {
 };
 
 // Mark as initialized after mount to prevent immediate URL updates
-watch(() => data.value, () => {
-    if (data.value && !isInitialized) {
-        setTimeout(() => {
-            isInitialized = true;
-        }, 100);
-    }
-}, { immediate: true });
+watch(
+    () => data.value,
+    () => {
+        if (data.value && !isInitialized) {
+            setTimeout(() => {
+                isInitialized = true;
+            }, 100);
+        }
+    },
+    { immediate: true },
+);
 </script>
 
 <template>
-    <ExplorerLayout 
-        :title="isBlob() ? 'Transaction Details' : 'Proof Details'" 
+    <ExplorerLayout
+        :title="isBlob() ? 'Transaction Details' : 'Proof Details'"
         :tabs="tabs"
         :active-tab="activeTab"
         @update:active-tab="handleTabChange"
@@ -154,9 +162,9 @@ watch(() => data.value, () => {
                         <div class="info-row">
                             <span class="info-label">TX Sender:</span>
                             <div class="flex items-center gap-2">
-                                <RouterLink 
-                                    v-if="data?.identity" 
-                                    :to="{ name: 'Address', params: { address: data.identity } }" 
+                                <RouterLink
+                                    v-if="data?.identity"
+                                    :to="{ name: 'Address', params: { address: data.identity } }"
                                     class="text-link"
                                 >
                                     {{ data.identity }}
@@ -230,9 +238,9 @@ watch(() => data.value, () => {
                                         <div>
                                             <div class="text-xs font-medium mb-1">Identity</div>
                                             <div class="text-xs text-mono">
-                                                <RouterLink 
-                                                    v-if="output.identity" 
-                                                    :to="{ name: 'Address', params: { address: output.identity } }" 
+                                                <RouterLink
+                                                    v-if="output.identity"
+                                                    :to="{ name: 'Address', params: { address: output.identity } }"
                                                     class="text-link hover:underline"
                                                 >
                                                     {{ output.identity }}
@@ -284,13 +292,13 @@ watch(() => data.value, () => {
                                 class="text-xs text-link flex items-center gap-1"
                             >
                                 Block: {{ event.block_hash }}
-                                <CopyButton :text="event.block_hash" />
                             </RouterLink>
                         </div>
-                        <div v-if="event.metadata" class="mt-2">
-                            <pre class="text-xs bg-secondary/5 p-2 rounded overflow-x-auto">{{
+                        <div v-if="event.metadata" class="mt-2 relative">
+                            <pre class="text-xs bg-secondary/5 p-2 rounded overflow-auto min-h-12 max-h-40 pr-12">{{
                                 JSON.stringify(event.metadata, null, 2)
                             }}</pre>
+                            <CopyButton :text="event.block_hash" class="absolute top-2 right-2" />
                         </div>
                     </div>
                 </div>

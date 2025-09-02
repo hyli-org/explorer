@@ -59,7 +59,7 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
 
         switch (contractName) {
             case "hyli":
-                const hyliAction = deserializeHyleAction(data);
+                const hyliAction = deserializeHyliAction(data);
                 return formatObject(hyliAction);
             case "hyllar":
                 const erc20Action = hyli.token.deserializeERC20Action(data);
