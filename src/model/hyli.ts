@@ -1,5 +1,4 @@
 import { BorshSchema, borshDeserialize } from "borsher";
-import { StructuredBlobData, structuredBlobDataSchema } from "hyli";
 
 export type TimeoutWindow = { NoTimeout: {} } | { Timeout: number };
 
@@ -9,6 +8,7 @@ export interface RegisterContractAction {
     state_commitment: Uint8Array;
     contract_name: string;
     timeout_window: TimeoutWindow | null;
+    metadata: Uint8Array | null;
 }
 
 export interface DeleteContractAction {
@@ -17,29 +17,29 @@ export interface DeleteContractAction {
 
 export const deserializeHyliAction = (
     data: number[],
-): StructuredBlobData<RegisterContractAction> | StructuredBlobData<DeleteContractAction> => {
+): { RegisterContractAction: RegisterContractAction } | { DeleteContractAction: DeleteContractAction } => {
     try {
-        return deserializeRegisterContractAction(data);
+        return { RegisterContractAction: deserializeRegisterContractAction(data) };
     } catch (e) {
         console.log("Failed to deserialize RegisterContractAction, trying DeleteContractAction");
         try {
-            return deserializeDeleteContractAction(data);
+            return { DeleteContractAction: deserializeDeleteContractAction(data) };
         } catch (e) {
             throw new Error("Failed to deserialize Hyli action");
         }
     }
 };
 
-export const deserializeRegisterContractAction = (data: number[]): StructuredBlobData<RegisterContractAction> => {
-    return borshDeserialize(structuredBlobDataSchema(registerContractActionSchema), new Uint8Array(data));
+export const deserializeRegisterContractAction = (data: number[]): RegisterContractAction => {
+    return borshDeserialize(registerContractActionSchema, new Uint8Array(data));
 };
 
 export const deserializeTimeoutWindow = (data: number[]): TimeoutWindow => {
     return borshDeserialize(timeoutWindowSchema, new Uint8Array(data));
 };
 
-export const deserializeDeleteContractAction = (data: number[]): StructuredBlobData<DeleteContractAction> => {
-    return borshDeserialize(structuredBlobDataSchema(deleteContractActionSchema), new Uint8Array(data));
+export const deserializeDeleteContractAction = (data: number[]): DeleteContractAction => {
+    return borshDeserialize(deleteContractActionSchema, new Uint8Array(data));
 };
 
 export const deleteContractActionSchema = BorshSchema.Struct({
@@ -57,4 +57,5 @@ const registerContractActionSchema = BorshSchema.Struct({
     state_commitment: BorshSchema.Vec(BorshSchema.u8),
     contract_name: BorshSchema.String,
     timeout_window: BorshSchema.Option(timeoutWindowSchema),
+    metadata: BorshSchema.Option(BorshSchema.Vec(BorshSchema.u8)),
 });

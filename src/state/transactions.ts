@@ -1,4 +1,4 @@
-import { getNetworkIndexerApiUrl } from "@/state/network";
+import { getNetworkIndexerApiUrl, network } from "@/state/network";
 
 export type HyliOutput = {
     blobs: number[];
@@ -79,7 +79,7 @@ export class TransactionStore {
     async loadLatest() {
         const response = await fetch(`${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transactions?no_cache=${Date.now()}`);
         let resp = await response.json();
-        this.latest = resp.map((tx: TransactionInfo) => tx.tx_hash);
+        this.latest = resp.map((tx: TransactionInfo) => tx.tx_hash).reverse();
         for (let item of resp) {
             this.data[item.tx_hash] = item;
             this.updateTransactionsByBlock(item);
@@ -101,12 +101,23 @@ export class TransactionStore {
             );
             const eventsData = await eventsResponse.json();
             // Preserve block_hash and other metadata when flattening events
-            tx.events = eventsData.flatMap((eventEntry: { block_hash: string; events: Omit<EventInfo, "block_hash">[] }) =>
-                (eventEntry.events || []).map((event) => ({
-                    ...event,
-                    block_hash: eventEntry.block_hash,
-                })),
-            );
+            // Retrocompatibility
+            if (network.value === "first-testnet")
+                tx.events = eventsData.flatMap((eventEntry: { block_hash: string; events: Omit<EventInfo, "block_hash">[] }) =>
+                    (eventEntry.events || []).map((event) => ({
+                        ...event,
+                        block_hash: eventEntry.block_hash,
+                    })),
+                );
+            else {
+                tx.events = eventsData.flatMap((eventEntry: { block_hash: string; events: Omit<EventInfo, "block_hash">[] }) =>
+                    (eventEntry.events || []).map((event) => ({
+                        name: Object.keys(event)[0],
+                        metadata: (event as any)[Object.keys(event)[0]][1], // Common format -> get the actual meat of the event
+                        block_hash: eventEntry.block_hash,
+                    })),
+                );
+            }
         }
     }
 
