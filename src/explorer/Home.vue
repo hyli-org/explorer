@@ -25,6 +25,36 @@ const formatVerifierName = (verifier: string) => {
     }
 };
 
+const shortenString = (str: string, maxLength: number = 30) => {
+    if (!str) return str;
+    if (str.length <= maxLength) return str;
+    const startLength = Math.ceil(maxLength / 2);
+    const endLength = Math.floor(maxLength / 2) - 3; // -3 for the "..."
+    return `${str.slice(0, startLength)}...${str.slice(-endLength)}`;
+};
+
+const shortenIdentity = (identity: string, maxLength: number = 40) => {
+    if (!identity || identity === "(unknown)") return identity;
+    const parts = identity.split("@");
+    if (parts.length !== 2) return shortenString(identity, maxLength);
+
+    // Split available length between username and domain
+    const maxPartLength = Math.floor((maxLength - 1) / 2); // -1 for @ symbol
+    const username = parts[0];
+    const domain = parts[1];
+
+    const shortenedUsername =
+        username.length > maxPartLength
+            ? `${username.slice(0, Math.floor(maxPartLength / 2))}...${username.slice(-Math.floor(maxPartLength / 2))}`
+            : username;
+    const shortenedDomain =
+        domain.length > maxPartLength
+            ? `${domain.slice(0, Math.floor(maxPartLength / 2))}...${domain.slice(-Math.floor(maxPartLength / 2))}`
+            : domain;
+
+    return `${shortenedUsername}@${shortenedDomain}`;
+};
+
 const stats = ref<null | {
     total_transactions: number;
     txs_last_day: number;
@@ -434,9 +464,9 @@ const blockTimeChartData = computed(() => ({
                                         <div class="flex-1">
                                             <div class="flex items-center justify-between mb-1">
                                                 <div class="flex items-center gap-2">
-                                                    <span class="font-mono text-xs text-neutral"
-                                                        >{{ tx_hash.slice(0, 10) }}...{{ tx_hash.slice(-6) }}</span
-                                                    >
+                                                    <span class="font-mono text-xs text-neutral">
+                                                        {{ shortenString(proof_hash, 20) }}
+                                                    </span>
                                                     <span class="text-xs text-primary px-2 py-0.5 bg-primary/5 rounded-full">
                                                         {{ transactionStore.data[tx_hash].transaction_type }}
                                                     </span>
@@ -450,7 +480,7 @@ const blockTimeChartData = computed(() => ({
                                                     <span
                                                         >Sender:
                                                         <span class="text-secondary font-mono">{{
-                                                            transactionStore.data[tx_hash]?.identity ?? "(unknown)"
+                                                            shortenIdentity(transactionStore.data[tx_hash]?.identity ?? "(unknown)")
                                                         }}</span></span
                                                     >
                                                 </div>
@@ -490,7 +520,7 @@ const blockTimeChartData = computed(() => ({
                                             <div class="flex items-center justify-between mb-1">
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-mono text-xs text-neutral">
-                                                        {{ proof_hash.slice(0, 10) }}...{{ proof_hash.slice(-6) }}
+                                                        {{ shortenString(proof_hash, 20) }}
                                                     </span>
                                                     <span class="text-xs text-primary px-2 py-0.5 bg-primary/5 rounded-full">
                                                         {{ proofStore.data[proof_hash].transaction_type }}
@@ -550,7 +580,9 @@ const blockTimeChartData = computed(() => ({
                                 class="flex items-center p-2 hover:bg-secondary/5 rounded-lg transition-colors"
                             >
                                 <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                                <span class="text-secondary font-medium">{{ contract_name }}</span>
+                                <span class="text-secondary font-medium">
+                                    {{ shortenString(contract_name, 30) }}
+                                </span>
                             </RouterLink>
                         </div>
                     </div>
