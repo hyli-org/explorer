@@ -9,7 +9,7 @@ import { network } from "@/state/network";
             class="appearance-none min-w-[140px] bg-white/80 backdrop-blur-sm border border-white/20 text-secondary px-4 py-2 pr-10 rounded-xl font-medium cursor-pointer hover:bg-secondary/5 transition-colors uppercase text-sm"
         >
             <option value="devnet">Devnet</option>
-            <option value="testnet-kkt">Fib Race</option>
+            <option value="fibrace">Fib Race</option>
             <option value="first-testnet">First Testnet</option>
             <option value="localhost">Localhost</option>
         </select>
