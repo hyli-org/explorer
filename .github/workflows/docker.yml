@@ -3,9 +3,9 @@ name: Push to Artifact Registry
 on: [push, pull_request]
 
 env:
-    IMAGE_NAME: "hyleou"
+    IMAGE_NAME: "explorer"
     AR_REPO_LOCATION: "europe-west3-docker.pkg.dev"
-    AR_URL: "hyle-413414/hyle-docker"
+    AR_URL: "hyle-413414/hyli-docker"
 
 jobs:
     build_and_push:
