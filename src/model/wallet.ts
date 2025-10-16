@@ -34,13 +34,15 @@ export type WalletAction =
               key: string;
               expiration_date: number;
               whitelist?: string[];
-              lane_id?: string;
+              laneId?: string;
+              nonce: number;
           };
       }
     | {
           RemoveSessionKey: {
               account: string;
               key: string;
+              nonce: number;
           };
       }
     | {
@@ -87,10 +89,12 @@ const schema = BorshSchema.Enum({
         expiration_date: BorshSchema.u128,
         whitelist: BorshSchema.Option(BorshSchema.Vec(BorshSchema.String)),
         lane_id: BorshSchema.Option(BorshSchema.String),
+        nonce: BorshSchema.u128,
     }),
     RemoveSessionKey: BorshSchema.Struct({
         account: BorshSchema.String,
         key: BorshSchema.String,
+        nonce: BorshSchema.u128,
     }),
     UseSessionKey: BorshSchema.Struct({
         account: BorshSchema.String,
