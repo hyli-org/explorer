@@ -4,6 +4,12 @@ export type AuthMethod = {
     Password: {
         hash: string;
     };
+    Jwt: {
+        hash: number[];
+    };
+    Ethereum: {
+        address: string;
+    };
 };
 
 export type WalletAction =
@@ -61,6 +67,12 @@ const schema = BorshSchema.Enum({
         auth_method: BorshSchema.Enum({
             Password: BorshSchema.Struct({
                 hash: BorshSchema.String,
+            }),
+            Jwt: BorshSchema.Struct({
+                hash: BorshSchema.Array(BorshSchema.u8, 32),
+            }),
+            Ethereum: BorshSchema.Struct({
+                address: BorshSchema.String,
             }),
         }),
         invite_code: BorshSchema.String,
