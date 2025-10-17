@@ -2,38 +2,69 @@ import { BorshSchema, borshDeserialize } from "borsher";
 
 export type OrderType = "Buy" | "Sell";
 
-export type TokenPair = {
+export type Pair = {
     base: string;
     quote: string;
 };
 
+export type PairInfo = {
+    // Add fields as needed based on the actual Rust struct
+    [key: string]: any;
+};
+
+export type Order = {
+    order_id: string;
+    order_type: OrderType;
+    price?: number;
+    pair: Pair;
+    quantity: number;
+};
+
+export type PermissionnedOrderbookAction =
+    | { Identify: {} }
+    | { AddSessionKey: {} }
+    | {
+        CreatePair: {
+            pair: Pair;
+            info: PairInfo;
+        };
+    }
+    | {
+        Deposit: {
+            symbol: string;
+            amount: number;
+        };
+    }
+    | {
+        CreateOrder: Order;
+    }
+    | {
+        Cancel: {
+            order_id: string;
+        };
+    }
+    | {
+        Withdraw: {
+            symbol: string;
+            amount: number;
+            destination_address: string;
+        };
+    };
+
+export type PermissionlessOrderbookAction = {
+    Escape: {
+        user_key: number[]; // [u8; 32] represented as number array
+    };
+};
+
 export type OrderbookAction =
     | {
-          CreateOrder: {
-              order_id: string;
-              order_type: OrderType;
-              price?: number;
-              pair: TokenPair;
-              quantity: number;
-          };
-      }
+        PermissionnedOrderbookAction: PermissionnedOrderbookAction;
+    }
     | {
-          Cancel: {
-              order_id: string;
-          };
-      }
-    | {
-          Deposit: {
-              token: string;
-              amount: number;
-          };
-      }
-    | {
-          Withdraw: {
-              token: string;
-              amount: number;
-          };
-      };
+        PermissionlessOrderbookAction: PermissionlessOrderbookAction;
+    };
+
 //
 // Serialisation
 //
@@ -43,28 +74,45 @@ export const deserializeOrderbookAction = (data: number[]): OrderbookAction => {
 };
 
 const schema = BorshSchema.Enum({
-    CreateOrder: BorshSchema.Struct({
-        order_id: BorshSchema.String,
-        order_type: BorshSchema.Enum({
-            Buy: BorshSchema.Unit,
-            Sell: BorshSchema.Unit,
+    PermissionnedOrderbookAction: BorshSchema.Enum({
+        Identify: BorshSchema.Struct({}),
+        AddSessionKey: BorshSchema.Struct({}),
+        CreatePair: BorshSchema.Struct({
+            pair: BorshSchema.Struct({
+                base: BorshSchema.String,
+                quote: BorshSchema.String,
+            }),
+            info: BorshSchema.Struct({}), // Adjust based on actual PairInfo structure
         }),
-        price: BorshSchema.Option(BorshSchema.u32),
-        pair: BorshSchema.Struct({
-            base: BorshSchema.String,
-            quote: BorshSchema.String,
+        Deposit: BorshSchema.Struct({
+            symbol: BorshSchema.String,
+            amount: BorshSchema.u64,
         }),
-        quantity: BorshSchema.u32,
+        CreateOrder: BorshSchema.Struct({
+            order_id: BorshSchema.String,
+            order_type: BorshSchema.Enum({
+                Buy: BorshSchema.Unit,
+                Sell: BorshSchema.Unit,
+            }),
+            price: BorshSchema.Option(BorshSchema.u32),
+            pair: BorshSchema.Struct({
+                base: BorshSchema.String,
+                quote: BorshSchema.String,
+            }),
+            quantity: BorshSchema.u32,
+        }),
+        Cancel: BorshSchema.Struct({
+            order_id: BorshSchema.String,
+        }),
+        Withdraw: BorshSchema.Struct({
+            symbol: BorshSchema.String,
+            amount: BorshSchema.u64,
+            destination_address: BorshSchema.String,
+        }),
     }),
-    Cancel: BorshSchema.Struct({
-        order_id: BorshSchema.String,
-    }),
-    Deposit: BorshSchema.Struct({
-        token: BorshSchema.String,
-        amount: BorshSchema.u32,
-    }),
-    Withdraw: BorshSchema.Struct({
-        token: BorshSchema.String,
-        amount: BorshSchema.u32,
+    PermissionlessOrderbookAction: BorshSchema.Enum({
+        Escape: BorshSchema.Struct({
+            user_key: BorshSchema.Array(BorshSchema.u8, 32),
+        }),
     }),
 });
