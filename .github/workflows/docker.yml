@@ -4,8 +4,8 @@ on: [push, pull_request]
 
 env:
     IMAGE_NAME: "explorer"
-    AR_REPO_LOCATION: "europe-west3-docker.pkg.dev"
-    AR_URL: "hyle-413414/hyli-docker"
+    AR_REPO_LOCATION: "europe-west1-docker.pkg.dev"
+    AR_URL: "hyli-shared-all/hyli"
 
 jobs:
     build_and_push:
