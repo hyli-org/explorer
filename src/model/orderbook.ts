@@ -49,7 +49,10 @@ export type PermissionnedOrderbookAction =
           Withdraw: {
               symbol: string;
               amount: number;
-              destination_address: string;
+              destinaction: {
+                  network: string;
+                  address: string;
+              };
           };
       };
 
@@ -104,12 +107,12 @@ const schema = BorshSchema.Enum({
                     Bid: BorshSchema.Unit,
                     Ask: BorshSchema.Unit,
                 }),
-                price: BorshSchema.Option(BorshSchema.u32),
+                price: BorshSchema.Option(BorshSchema.u64),
                 pair: BorshSchema.Struct({
                     base: BorshSchema.String,
                     quote: BorshSchema.String,
                 }),
-                quantity: BorshSchema.u32,
+                quantity: BorshSchema.u64,
             }),
             Cancel: BorshSchema.Struct({
                 order_id: BorshSchema.String,
@@ -117,17 +120,20 @@ const schema = BorshSchema.Enum({
             Withdraw: BorshSchema.Struct({
                 symbol: BorshSchema.String,
                 amount: BorshSchema.u64,
-                destination_address: BorshSchema.String,
+                destination: BorshSchema.Struct({
+                    network: BorshSchema.String,
+                    address: BorshSchema.String,
+                }),
             }),
         }),
-        global_nonce: BorshSchema.u32,
+        global_nonce: BorshSchema.u64,
     }),
     PermissionlessOrderbookAction: BorshSchema.Struct({
         action: BorshSchema.Enum({
             Escape: BorshSchema.Struct({
                 user_key: BorshSchema.Array(BorshSchema.u8, 32),
             }),
-            global_nonce: BorshSchema.u32,
+            global_nonce: BorshSchema.u64,
         }),
     }),
 });
