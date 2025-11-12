@@ -133,7 +133,7 @@ onMounted(async () => {
                                             <span
                                                 >Block:
                                                 <RouterLink
-                                                    :to="{ name: 'Block', params: { block_hash: tx.block_hash } }"
+                                                    :to="{ name: 'BlockHash', params: { block_hash: tx.block_hash } }"
                                                     class="text-secondary hover:underline"
                                                 >
                                                     {{ tx.block_hash ? `${tx.block_hash.slice(0, 14)}...` : "Pending" }}

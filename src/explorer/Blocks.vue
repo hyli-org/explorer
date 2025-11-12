@@ -108,7 +108,7 @@ onMounted(async () => {
                         <RouterLink
                             v-for="block in currentPageBlocks"
                             :key="block.hash"
-                            :to="{ name: 'Block', params: { block_hash: block.hash } }"
+                            :to="{ name: 'BlockHash', params: { block_hash: block.hash } }"
                             class="block hover:bg-secondary/5 rounded-lg transition-colors"
                         >
                             <div class="flex items-center py-3 px-4">

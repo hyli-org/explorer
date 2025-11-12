@@ -5,21 +5,9 @@ import { contractStore, transactionStore } from "@/state/data";
 import { computed, watchEffect, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { getTimeAgo } from "@/state/utils";
-import { blockStore } from "@/state/data";
 
 const route = useRoute();
 const contract_name = computed(() => route.params.contract_name as string);
-const blockHash = ref<string | null>(null);
-
-const fetchBlockHash = async (height: number) => {
-    try {
-        const block = await blockStore.value.loadByHeight(height);
-        blockHash.value = block.hash;
-    } catch (error) {
-        console.error('Error fetching block hash:', error);
-        blockHash.value = null;
-    }
-};
 
 watchEffect(() => {
     if (!contractStore.value.data[contract_name.value]) {
@@ -40,12 +28,6 @@ const tabs = [{ name: "Overview" }, { name: "Raw JSON" }];
 const formatTimestamp = (timestamp: number) => {
     return `${getTimeAgo(timestamp)} (${new Date(timestamp).toLocaleString()})`;
 };
-
-watchEffect(() => {
-    if (data.value?.earliest_unsettled) {
-        fetchBlockHash(data.value.earliest_unsettled);
-    }
-});
 </script>
 
 <template>
@@ -108,14 +90,12 @@ watchEffect(() => {
                                 No unsettled txs
                             </template>
                             <template v-else>
-                                <RouterLink 
-                                    v-if="blockHash"
-                                    :to="{ name: 'Block', params: { block_hash: blockHash } }"
+                                <RouterLink
+                                    :to="{ name: 'BlockHeight', params: { block_height: data.earliest_unsettled } }"
                                     class="text-link"
                                 >
                                     Block #{{ data.earliest_unsettled }}
                                 </RouterLink>
-                                <span v-else>Block #{{ data.earliest_unsettled }}</span>
                             </template>
                         </span>
                     </div>

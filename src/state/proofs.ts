@@ -7,6 +7,7 @@ export type ProofInfo = {
     transaction_type: string;
     transaction_status: string;
     block_hash: string;
+    block_height: number;
     index: number;
     timestamp: number;
     proof_outputs: [string, number, number, any][];

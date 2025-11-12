@@ -3,27 +3,66 @@ import ExplorerLayout from "@/explorer/components/ExplorerLayout.vue";
 import CopyButton from "@/components/CopyButton.vue";
 import { blockStore, transactionStore } from "@/state/data";
 import { getTimeAgo } from "@/state/utils";
-import { computed, watchEffect } from "vue";
+import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
-const block_hash = computed(() => route.params.block_hash as string);
+
+const hashParam = computed(() => (typeof route.params.block_hash === "string" ? (route.params.block_hash as string) : null));
+const heightParam = computed(() => {
+    if (typeof route.params.block_height === "string") {
+        const parsed = Number(route.params.block_height);
+        return Number.isNaN(parsed) ? null : parsed;
+    }
+    return null;
+});
+
+const resolvedBlockHash = ref<string | null>(null);
+let requestId = 0;
+
+watch(
+    () => ({ hash: hashParam.value, height: heightParam.value }),
+    async ({ hash, height }) => {
+        requestId += 1;
+        const currentRequest = requestId;
+
+        if (hash) {
+            resolvedBlockHash.value = hash;
+            if (!blockStore.value.data[hash]) {
+                await blockStore.value.load(hash);
+            }
+            return;
+        }
+
+        resolvedBlockHash.value = null;
+
+        if (height !== null) {
+            try {
+                const block = await blockStore.value.loadByHeight(height);
+                if (currentRequest === requestId) {
+                    resolvedBlockHash.value = block.hash;
+                }
+            } catch (error) {
+                console.error("Failed to load block by height:", error);
+            }
+        }
+    },
+    { immediate: true },
+);
+
+const data = computed(() => (resolvedBlockHash.value ? blockStore.value.data?.[resolvedBlockHash.value] : undefined));
 
 watchEffect(() => {
-    if (!blockStore.value.data[block_hash.value]) {
-        blockStore.value.load(block_hash.value);
+    if (resolvedBlockHash.value && data.value) {
+        transactionStore.value.getTransactionsByBlockHash(resolvedBlockHash.value, data.value.height);
     }
 });
 
-const data = computed(() => blockStore.value.data?.[block_hash.value]);
+const transactions = computed(() =>
+    resolvedBlockHash.value ? transactionStore.value.transactionsByBlock[resolvedBlockHash.value] || [] : [],
+);
 
-watchEffect(() => {
-    if (data.value) {
-        transactionStore.value.getTransactionsByBlockHash(block_hash.value, data.value.height);
-    }
-});
-
-const transactions = computed(() => transactionStore.value.transactionsByBlock[block_hash.value] || []);
+const displayHeight = computed(() => data.value?.height ?? heightParam.value);
 
 const tabs = [{ name: "Overview" }, { name: "Raw JSON" }];
 
@@ -42,16 +81,40 @@ const formatTxTimestamp = (timestamp: number) => {
             <div v-if="activeTab === 'Overview'" class="data-card">
                 <div class="divide-y divide-secondary/5">
                     <div class="info-row">
-                        <span class="info-label">Block Hash:</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-mono">{{ block_hash }}</span>
-                            <CopyButton :text="block_hash" />
+                        <span class="info-label">Block:</span>
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span
+                                    class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-secondary/10 text-secondary/80"
+                                >
+                                    Hash
+                                </span>
+                                <RouterLink
+                                    v-if="resolvedBlockHash"
+                                    :to="{ name: 'BlockHash', params: { block_hash: resolvedBlockHash } }"
+                                    class="text-link text-mono break-all"
+                                >
+                                    {{ resolvedBlockHash }}
+                                </RouterLink>
+                                <span v-else class="text-label">Loading...</span>
+                                <CopyButton v-if="resolvedBlockHash" :text="resolvedBlockHash" />
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span
+                                    class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-secondary/10 text-secondary/80"
+                                >
+                                    Height
+                                </span>
+                                <RouterLink
+                                    v-if="displayHeight !== null"
+                                    :to="{ name: 'BlockHeight', params: { block_height: displayHeight } }"
+                                    class="text-link text-mono break-all"
+                                >
+                                    #{{ displayHeight }}
+                                </RouterLink>
+                                <span v-else class="text-label">...</span>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">Height:</span>
-                        <span class="text-label">#{{ data?.height === undefined ? "..." : data.height }}</span>
                     </div>
 
                     <div class="info-row">
@@ -59,7 +122,7 @@ const formatTxTimestamp = (timestamp: number) => {
                         <div class="flex items-center gap-2">
                             <RouterLink
                                 v-if="data?.parent_hash"
-                                :to="{ name: 'Block', params: { block_hash: data?.parent_hash } }"
+                                :to="{ name: 'BlockHash', params: { block_hash: data?.parent_hash } }"
                                 class="text-link"
                             >
                                 {{ data?.parent_hash }}
