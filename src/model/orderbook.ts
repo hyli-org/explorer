@@ -126,14 +126,14 @@ const schema = BorshSchema.Enum({
                 }),
             }),
         }),
-        global_nonce: BorshSchema.u64,
+        global_nonce: BorshSchema.u32,
     }),
     PermissionlessOrderbookAction: BorshSchema.Struct({
         action: BorshSchema.Enum({
             Escape: BorshSchema.Struct({
                 user_key: BorshSchema.Array(BorshSchema.u8, 32),
             }),
-            global_nonce: BorshSchema.u64,
+            global_nonce: BorshSchema.u32,
         }),
     }),
 });
