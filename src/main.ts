@@ -21,9 +21,18 @@ const routes = [
         name: "Transaction",
     },
     {
-        path: "/block/:block_hash",
+        path: "/block/hash/:block_hash",
         component: Block,
-        name: "Block",
+        name: "BlockHash",
+    },
+    {
+        path: "/block/height/:block_height",
+        component: Block,
+        name: "BlockHeight",
+    },
+    {
+        path: "/block/:block_hash",
+        redirect: (to: any) => ({ name: "BlockHash", params: { block_hash: to.params.block_hash } }),
     },
     {
         path: "/blocks",

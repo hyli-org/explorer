@@ -2,7 +2,7 @@
 import ExplorerLayout from "@/explorer/components/ExplorerLayout.vue";
 import CopyButton from "@/components/CopyButton.vue";
 import TransactionStatus from "@/explorer/components/TransactionStatus.vue";
-import { transactionStore, proofStore } from "@/state/data";
+import { transactionStore, proofStore, blockStore } from "@/state/data";
 import { getTimeAgo } from "@/state/utils";
 import { computed, watch, type ComputedRef, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -118,6 +118,22 @@ watch(
     },
     { immediate: true },
 );
+
+watch(
+    () => data.value?.block_hash,
+    (hash) => {
+        if (hash && !blockStore.value.data?.[hash]) {
+            blockStore.value.load(hash);
+        }
+    },
+    { immediate: true },
+);
+
+const blockHeight = computed(() => {
+    const hash = data.value?.block_hash;
+    if (!hash) return null;
+    return data.value?.block_height ?? blockStore.value.data?.[hash]?.height ?? null;
+});
 </script>
 
 <template>
@@ -140,11 +156,34 @@ watch(
 
                     <div class="info-row" v-if="data?.block_hash">
                         <span class="info-label">Block:</span>
-                        <div class="flex items-center gap-2">
-                            <RouterLink :to="{ name: 'Block', params: { block_hash: data.block_hash } }" class="text-link">
-                                {{ data.block_hash }}
-                            </RouterLink>
-                            <CopyButton :text="data.block_hash" />
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span
+                                    class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-secondary/10 text-secondary/80"
+                                >
+                                    Hash
+                                </span>
+                                <RouterLink
+                                    :to="{ name: 'BlockHash', params: { block_hash: data.block_hash } }"
+                                    class="text-link text-mono break-all"
+                                >
+                                    {{ data.block_hash }}
+                                </RouterLink>
+                                <CopyButton :text="data.block_hash" />
+                            </div>
+                            <div v-if="blockHeight !== null" class="flex items-center gap-2 flex-wrap">
+                                <span
+                                    class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-secondary/10 text-secondary/80"
+                                >
+                                    Height
+                                </span>
+                                <RouterLink
+                                    :to="{ name: 'BlockHeight', params: { block_height: blockHeight } }"
+                                    class="text-link text-mono break-all"
+                                >
+                                    #{{ blockHeight }}
+                                </RouterLink>
+                            </div>
                         </div>
                     </div>
 
@@ -288,7 +327,7 @@ watch(
                             <span class="text-sm font-medium text-secondary">Event #{{ index + 1 }}: {{ event.name }}</span>
                             <RouterLink
                                 v-if="event.block_hash"
-                                :to="{ name: 'Block', params: { block_hash: event.block_hash } }"
+                                :to="{ name: 'BlockHash', params: { block_hash: event.block_hash } }"
                                 class="text-xs text-link flex items-center gap-1"
                             >
                                 Block: {{ event.block_hash }}

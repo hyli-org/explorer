@@ -398,7 +398,7 @@ const blockTimeChartData = computed(() => ({
                             <RouterLink
                                 v-for="hash in blockStore.latest"
                                 :key="hash"
-                                :to="{ name: 'Block', params: { block_hash: hash } }"
+                                :to="{ name: 'BlockHash', params: { block_hash: hash } }"
                                 class="block hover:bg-secondary/5 rounded-lg transition-colors"
                             >
                                 <div class="flex items-center py-3 px-4">
