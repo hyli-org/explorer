@@ -131,7 +131,6 @@ export class TransactionStore {
                 `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transaction/hash/${tx.tx_hash}/events?no_cache=${Date.now()}`,
             );
             const eventsData = await eventsResponse.json();
-            console.log(eventsData);
 
             const events = eventsData.flatMap((eventEntry: { block_hash: string; block_height: number; events: any[] }) =>
                 (eventEntry.events || []).map((event) => ({
