@@ -9,6 +9,7 @@ import { useRoute, useRouter } from "vue-router";
 import type { TransactionInfo } from "@/state/transactions";
 import type { ProofInfo } from "@/state/proofs";
 import { decodeBlobData } from "@/explorer/utils/blobDecoder";
+import { TxEventProcessor } from "@/services/eventProcessor";
 
 const route = useRoute();
 const router = useRouter();
@@ -329,7 +330,7 @@ watch(
                         </div>
                         <div v-if="event.metadata" class="mt-2 relative">
                             <pre class="text-xs bg-secondary/5 p-2 rounded overflow-auto min-h-12 max-h-40 pr-12">{{
-                                JSON.stringify(event.metadata, null, 2)
+                                TxEventProcessor.processEvent(event)
                             }}</pre>
                             <CopyButton :text="JSON.stringify(event.metadata)" class="absolute top-2 right-2" />
                         </div>

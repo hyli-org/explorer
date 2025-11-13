@@ -25,7 +25,8 @@ export type EventInfo = {
     block_hash: string;
     block_height: number;
     event_index: number;
-    metadata?: Record<string, any>;
+    event_name: string;
+    metadata?: any;
 };
 
 export type TransactionInfo = {
@@ -133,13 +134,17 @@ export class TransactionStore {
             const eventsData = await eventsResponse.json();
 
             const events = eventsData.flatMap((eventEntry: { block_hash: string; block_height: number; events: any[] }) =>
-                (eventEntry.events || []).map((event) => ({
-                    name: Object.keys(event)[0],
-                    metadata: (event as any)[Object.keys(event)[0]],
-                    block_hash: eventEntry.block_hash,
-                    block_height: eventEntry.block_height,
-                    event_index: event.event_index || 0,
-                })),
+                (eventEntry.events || []).map((event) => {
+                    const eventName = Object.keys(event).find(key => key !== 'event_index') || '';
+                    return {
+                        name: eventName,
+                        block_hash: eventEntry.block_hash,
+                        block_height: eventEntry.block_height,
+                        event_index: event.event_index || 0,
+                        event_name: eventName,
+                        metadata: event[eventName],
+                    };
+                }),
             );
             tx.events = events.sort((a: EventInfo, b: EventInfo) => a.event_index - b.event_index);
         }
