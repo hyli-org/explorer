@@ -4,10 +4,13 @@ import { network } from "@/state/network";
 
 <template>
     <div class="relative inline-block">
-        <select v-model="network"
-            class="appearance-none min-w-[140px] bg-white/80 backdrop-blur-sm border border-white/20 text-secondary px-4 py-2 pr-10 rounded-xl font-medium cursor-pointer hover:bg-secondary/5 transition-colors uppercase text-sm">
+        <select
+            v-model="network"
+            class="appearance-none min-w-[140px] bg-white/80 backdrop-blur-sm border border-white/20 text-secondary px-4 py-2 pr-10 rounded-xl font-medium cursor-pointer hover:bg-secondary/5 transition-colors uppercase text-sm"
+        >
             <option value="devnet">Devnet</option>
             <option value="testnet">Testnet</option>
+            <option value="camelot">Camelot</option>
             <option value="localhost">Localhost</option>
         </select>
         <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
