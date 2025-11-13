@@ -306,7 +306,13 @@ const blockTimeChartData = computed(() => ({
                             <h3 class="text-sm font-medium text-neutral uppercase">Proofs</h3>
                         </div>
                         <p class="text-3xl font-display text-primary mb-2">
-                            {{ proofStats ? proofStats.reduce((total, stat) => total + stat.proof_count, 0).toLocaleString() : "0" }}
+                            {{
+                                proofStats
+                                    ? proofStats
+                                          .reduce((total: any, stat: { proof_count: any }) => total + stat.proof_count, 0)
+                                          .toLocaleString()
+                                    : "0"
+                            }}
                         </p>
                         <div class="space-y-2">
                             <div v-for="stat in proofStats" :key="stat.verifier" class="flex items-center justify-between text-sm">
@@ -348,9 +354,7 @@ const blockTimeChartData = computed(() => ({
                                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                                     />
                                 </svg>
-                                <h3 class="text-sm font-medium text-neutral uppercase text-primary hover:underline transition-colors">
-                                    Network
-                                </h3>
+                                <h3 class="text-sm font-medium uppercase text-primary hover:underline transition-colors">Network</h3>
                             </RouterLink>
                         </div>
                         <p class="text-3xl font-display text-primary capitalize mb-2">{{ network }}</p>
@@ -465,7 +469,7 @@ const blockTimeChartData = computed(() => ({
                                             <div class="flex items-center justify-between mb-1">
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-mono text-xs text-neutral">
-                                                        {{ shortenString(proof_hash, 20) }}
+                                                        {{ shortenString(tx_hash, 20) }}
                                                     </span>
                                                     <span class="text-xs text-primary px-2 py-0.5 bg-primary/5 rounded-full">
                                                         {{ transactionStore.data[tx_hash].transaction_type }}

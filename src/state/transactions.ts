@@ -29,7 +29,7 @@ export type EventInfo = {
 export type TransactionInfo = {
     tx_hash: string;
     block_hash: string;
-    block_height?: number;
+    block_height: number;
     transaction_type: string;
     transaction_status: string | "Success";
     parent_dp_hash: string;

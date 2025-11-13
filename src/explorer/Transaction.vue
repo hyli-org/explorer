@@ -171,17 +171,17 @@ const blockHeight = computed(() => {
                                 </RouterLink>
                                 <CopyButton :text="data.block_hash" />
                             </div>
-                            <div v-if="blockHeight !== null" class="flex items-center gap-2 flex-wrap">
+                            <div v-if="data?.block_height" class="flex items-center gap-2 flex-wrap">
                                 <span
                                     class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-secondary/10 text-secondary/80"
                                 >
                                     Height
                                 </span>
                                 <RouterLink
-                                    :to="{ name: 'BlockHeight', params: { block_height: blockHeight } }"
+                                    :to="{ name: 'BlockHeight', params: { block_height: data.block_height } }"
                                     class="text-link text-mono break-all"
                                 >
-                                    #{{ blockHeight }}
+                                    #{{ data.block_height }}
                                 </RouterLink>
                             </div>
                         </div>

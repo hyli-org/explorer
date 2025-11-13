@@ -86,9 +86,7 @@ const formatTimestamp = (timestamp: number) => {
                     <div class="info-row">
                         <span class="info-label">Earliest unsettled transaction:</span>
                         <span class="text-label">
-                            <template v-if="!data || !data.earliest_unsettled">
-                                No unsettled txs
-                            </template>
+                            <template v-if="!data || !data.earliest_unsettled"> No unsettled txs </template>
                             <template v-else>
                                 <RouterLink
                                     :to="{ name: 'BlockHeight', params: { block_height: data.earliest_unsettled } }"
@@ -105,7 +103,7 @@ const formatTimestamp = (timestamp: number) => {
             <!-- Transactions List -->
             <div v-if="activeTab === 'Overview' && transactions.length > 0" class="data-card">
                 <h3 class="card-header">Transactions</h3>
-                {{ data.total_tx > 100 ? '(Latest 100)' : `` }}
+                {{ data.total_tx > 100 ? "(Latest 100)" : `` }}
                 <div>
                     <RouterLink
                         v-for="tx_hash in transactions"
