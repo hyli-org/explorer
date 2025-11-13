@@ -1,4 +1,4 @@
-import { getNetworkIndexerApiUrl, network } from "@/state/network";
+import { getNetworkIndexerApiUrl } from "@/state/network";
 
 export type HyliOutput = {
     blobs: number[];
@@ -23,6 +23,8 @@ export type BlobInfo = {
 export type EventInfo = {
     name: string;
     block_hash: string;
+    block_height: number;
+    event_index: number;
     metadata?: Record<string, any>;
 };
 
@@ -129,24 +131,18 @@ export class TransactionStore {
                 `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transaction/hash/${tx.tx_hash}/events?no_cache=${Date.now()}`,
             );
             const eventsData = await eventsResponse.json();
-            // Preserve block_hash and other metadata when flattening events
-            // Retrocompatibility
-            if (network.value === "first-testnet")
-                tx.events = eventsData.flatMap((eventEntry: { block_hash: string; events: Omit<EventInfo, "block_hash">[] }) =>
-                    (eventEntry.events || []).map((event) => ({
-                        ...event,
-                        block_hash: eventEntry.block_hash,
-                    })),
-                );
-            else {
-                tx.events = eventsData.flatMap((eventEntry: { block_hash: string; events: Omit<EventInfo, "block_hash">[] }) =>
-                    (eventEntry.events || []).map((event) => ({
-                        name: Object.keys(event)[0],
-                        metadata: (event as any)[Object.keys(event)[0]][1], // Common format -> get the actual meat of the event
-                        block_hash: eventEntry.block_hash,
-                    })),
-                );
-            }
+            console.log(eventsData);
+
+            const events = eventsData.flatMap((eventEntry: { block_hash: string; block_height: number; events: any[] }) =>
+                (eventEntry.events || []).map((event) => ({
+                    name: Object.keys(event)[0],
+                    metadata: (event as any)[Object.keys(event)[0]],
+                    block_hash: eventEntry.block_hash,
+                    block_height: eventEntry.block_height,
+                    event_index: event.event_index || 0,
+                })),
+            );
+            tx.events = events.sort((a: EventInfo, b: EventInfo) => a.event_index - b.event_index);
         }
     }
 

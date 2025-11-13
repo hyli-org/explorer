@@ -316,22 +316,22 @@ watch(
             <div v-else-if="activeTab === 'Events' && isBlob(data) && data?.events" class="data-card">
                 <h3 class="card-header">Events</h3>
                 <div>
-                    <div v-for="(event, index) in [...data.events]" :key="index" class="p-4 border-b-2">
+                    <div v-for="(event, index) in data.events" :key="index" class="p-4 border-b-2">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-secondary">Event #{{ index + 1 }}: {{ event.name }}</span>
+                            <span class="text-sm font-medium text-secondary">Event #{{ event.event_index }}: {{ event.name }}</span>
                             <RouterLink
                                 v-if="event.block_hash"
                                 :to="{ name: 'BlockHash', params: { block_hash: event.block_hash } }"
                                 class="text-xs text-link flex items-center gap-1"
                             >
-                                Block: {{ event.block_hash }}
+                                Block {{ event.block_height }} -- {{ event.block_hash }}
                             </RouterLink>
                         </div>
                         <div v-if="event.metadata" class="mt-2 relative">
                             <pre class="text-xs bg-secondary/5 p-2 rounded overflow-auto min-h-12 max-h-40 pr-12">{{
                                 JSON.stringify(event.metadata, null, 2)
                             }}</pre>
-                            <CopyButton :text="event.block_hash" class="absolute top-2 right-2" />
+                            <CopyButton :text="JSON.stringify(event.metadata)" class="absolute top-2 right-2" />
                         </div>
                     </div>
                 </div>
