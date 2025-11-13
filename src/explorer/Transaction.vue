@@ -128,12 +128,6 @@ watch(
     },
     { immediate: true },
 );
-
-const blockHeight = computed(() => {
-    const hash = data.value?.block_hash;
-    if (!hash) return null;
-    return data.value?.block_height ?? blockStore.value.data?.[hash]?.height ?? null;
-});
 </script>
 
 <template>
