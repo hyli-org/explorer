@@ -51,6 +51,30 @@ export class TransactionStore {
         this.network = network;
     }
 
+    private compareTransactions(txA?: TransactionInfo, txB?: TransactionInfo) {
+        const heightA = txA?.block_height ?? -Infinity;
+        const heightB = txB?.block_height ?? -Infinity;
+
+        if (heightA !== heightB) {
+            return heightB - heightA; // Higher block height first
+        }
+
+        const indexA = txA?.index ?? -Infinity;
+        const indexB = txB?.index ?? -Infinity;
+
+        if (indexA !== indexB) {
+            return indexB - indexA; // Higher index first within the block
+        }
+
+        const timeA = txA?.timestamp ?? 0;
+        const timeB = txB?.timestamp ?? 0;
+        return timeB - timeA;
+    }
+
+    private sortLatest() {
+        this.latest.sort((a, b) => this.compareTransactions(this.data[a], this.data[b]));
+    }
+
     private updateTransactionsByBlock(transaction: TransactionInfo) {
         if (transaction.block_hash) {
             if (!this.transactionsByBlock[transaction.block_hash]) {
@@ -80,11 +104,15 @@ export class TransactionStore {
     async loadLatest() {
         const response = await fetch(`${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transactions?no_cache=${Date.now()}`);
         let resp = await response.json();
-        this.latest = resp.map((tx: TransactionInfo) => tx.tx_hash).reverse();
+        resp.sort((a: TransactionInfo, b: TransactionInfo) => this.compareTransactions(a, b));
+
+        this.latest = [];
         for (let item of resp) {
+            this.latest.push(item.tx_hash);
             this.data[item.tx_hash] = item;
             this.updateTransactionsByBlock(item);
         }
+        this.sortLatest();
     }
 
     private async loadBlobsAndEvents(tx: TransactionInfo) {
@@ -151,7 +179,10 @@ export class TransactionStore {
 
     handleNewTx(tx: TransactionInfo) {
         this.data[tx.tx_hash] = tx;
-        this.latest.unshift(tx.tx_hash);
+        if (!this.latest.includes(tx.tx_hash)) {
+            this.latest.push(tx.tx_hash);
+        }
+        this.sortLatest();
         this.updateTransactionsByBlock(tx);
         this.updateTransactionsByContract(tx);
     }
