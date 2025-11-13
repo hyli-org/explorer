@@ -75,10 +75,10 @@ export const persistentRef = <T>(key: string, initialValue: T): Ref<T> => {
     return dataRef as any;
 };
 
-export const network = persistentRef("network", "devnet" as "localhost" | "testnet" | "devnet");
+export const network = persistentRef("network", "devnet" as "localhost" | "testnet" | "devnet" | "camelot");
 
 watchEffect(() => {
-    if (network.value !== "localhost" && network.value !== "testnet" && network.value !== "devnet") {
+    if (network.value !== "localhost" && network.value !== "testnet" && network.value !== "devnet" && network.value !== "camelot") {
         // Default to devnet if an unsupported network is set
         network.value = "devnet";
     }
@@ -92,6 +92,7 @@ export const getNetworkIndexerApiUrl = (network: string) => {
     return {
         devnet: "https://indexer.devnet.hyli.org",
         testnet: "https://indexer.testnet.hyli.org",
+        camelot: "https://indexer.camelot.hyli.dev",
     }[network];
 };
 
@@ -103,6 +104,7 @@ export const getNetworkNodeApiUrl = (network: string) => {
     return {
         devnet: "https://node.devnet.hyli.org",
         testnet: "https://node.testnet.hyli.org",
+        camelot: "https://node.camelot.hyli.dev",
     }[network];
 };
 
@@ -114,6 +116,7 @@ export const getNetworkWebSocketUrl = (network: string) => {
     return {
         devnet: "wss://indexer.devnet.hyli.org",
         testnet: "wss://indexer.testnet.hyli.org",
+        camelot: "wss://indexer.camelot.hyli.dev",
     }[network];
 };
 
@@ -125,5 +128,6 @@ export const getNetworkWalletApiUrl = (network: string) => {
     return {
         devnet: "https://wallet.devnet.hyli.org",
         testnet: "https://wallet.testnet.hyli.org",
+        camelot: "https://wallet.camelot.hyli.dev",
     }[network];
 };
