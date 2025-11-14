@@ -6,7 +6,7 @@
 import { EventInfo } from "@/state/transactions";
 
 export interface ProcessedEvent {
-    type: string;
+    type?: string;
     txHash?: string;
     laneId?: string;
     sequenceNumber?: number;
@@ -85,7 +85,6 @@ export class TxEventProcessor {
     private static processRejectedBlobTransaction(metadata: Record<string, any>): ProcessedEvent {
         // RejectedBlobTransaction(&'a TxHash, &'a LaneId, u32, &'a BlobTransaction, &'a Arc<TxContext>)
         return {
-            type: 'RejectedBlobTransaction',
             txHash: this.extractTxHash(metadata, 0),
             laneId: this.extractLaneId(metadata, 1),
             reason: 'Transaction rejected during blob processing',
@@ -98,7 +97,6 @@ export class TxEventProcessor {
     private static processDuplicateBlobTransaction(metadata: Record<string, any>): ProcessedEvent {
         // DuplicateBlobTransaction(&'a TxHash)
         return {
-            type: 'DuplicateBlobTransaction',
             txHash: this.extractTxHash(metadata, 0),
             reason: 'Duplicate blob transaction detected'
         };
@@ -107,11 +105,10 @@ export class TxEventProcessor {
     private static processSequencedBlobTransaction(metadata: Record<string, any>): ProcessedEvent {
         // SequencedBlobTransaction(&'a TxHash, &'a LaneId, u32, &'a BlobTransaction, &'a Arc<TxContext>)
         return {
-            type: 'SequencedBlobTransaction',
             txHash: this.extractTxHash(metadata, 0),
             laneId: this.extractLaneId(metadata, 1),
             additionalData: {
-                // context: this.extractTxContext(metadata, 4)
+                context: this.extractTxContext(metadata, 4)
             }
         };
     }
@@ -119,7 +116,6 @@ export class TxEventProcessor {
     private static processSequencedProofTransaction(metadata: Record<string, any>): ProcessedEvent {
         // SequencedProofTransaction(&'a TxHash, &'a LaneId, u32, &'a VerifiedProofTransaction)
         return {
-            type: 'SequencedProofTransaction',
             txHash: this.extractTxHash(metadata, 0),
             laneId: this.extractLaneId(metadata, 1),
             additionalData: {
@@ -130,7 +126,6 @@ export class TxEventProcessor {
     private static processSettled(metadata: Record<string, any>): ProcessedEvent {
         // Settled(&'a TxHash, &'a UnsettledBlobTransaction)
         return {
-            type: 'Settled',
             txHash: this.extractTxHash(metadata, 0),
             additionalData: {
             }
@@ -140,7 +135,6 @@ export class TxEventProcessor {
     private static processSettledAsFailed(metadata: Record<string, any>): ProcessedEvent {
         // SettledAsFailed(&'a TxHash, &'a UnsettledBlobTransaction, &'a str)
         return {
-            type: 'SettledAsFailed',
             txHash: this.extractTxHash(metadata, 0),
             error: this.extractString(metadata, 2),
             additionalData: {
@@ -151,7 +145,6 @@ export class TxEventProcessor {
     private static processTimedOut(metadata: Record<string, any>): ProcessedEvent {
         // TimedOut(&'a TxHash, &'a UnsettledBlobTransaction)
         return {
-            type: 'TimedOut',
             txHash: this.extractTxHash(metadata, 0),
             reason: 'Transaction timed out',
             additionalData: {
@@ -163,7 +156,6 @@ export class TxEventProcessor {
     private static processTxError(metadata: Record<string, any>): ProcessedEvent {
         // TxError(&'a TxHash, &'a str)
         return {
-            type: 'TxError',
             txHash: this.extractTxHash(metadata, 0),
             error: this.extractString(metadata, 1)
         };
@@ -171,35 +163,33 @@ export class TxEventProcessor {
 
     private static processNewProof(metadata: Record<string, any>): ProcessedEvent {
         // NewProof(&'a TxHash, &'a Blob, BlobIndex, &'a (ProgramId, Verifier, TxHash, HyliOutput), usize)
-        // const hyliOutputTuple = this.extractTuple(metadata, 3);
+        const hyliOutputTuple = this.extractTuple(metadata, 3);
         return {
-            type: 'NewProof',
             txHash: this.extractTxHash(metadata, 0),
             blobIndex: this.extractBlobIndex(metadata, 2),
             additionalData: {
-                // blob: this.extractBlob(metadata, 1),
-                // verifier: hyliOutputTuple?.[1],
-                // relatedTxHash: hyliOutputTuple?.[2],
-                // hyliOutput: hyliOutputTuple?.[3],
-                // proofIndex: this.extractUsize(metadata, 4)
+                blob: this.extractBlob(metadata, 1),
+                verifier: hyliOutputTuple?.[1],
+                relatedTxHash: hyliOutputTuple?.[2],
+                hyliOutput: hyliOutputTuple?.[3],
+                proofIndex: this.extractUsize(metadata, 4)
             }
         };
     }
 
     private static processBlobSettled(metadata: Record<string, any>): ProcessedEvent {
         // BlobSettled(&'a TxHash, &'a UnsettledBlobTransaction, &'a Blob, BlobIndex, Option<&'a (ProgramId, Verifier, TxHash, HyliOutput)>, usize)
-        // const hyliOutputTuple = this.extractOptionalTuple(metadata, 4);
+        const hyliOutputTuple = this.extractOptionalTuple(metadata, 4);
         return {
-            type: 'BlobSettled',
             txHash: this.extractTxHash(metadata, 0),
             blobIndex: this.extractBlobIndex(metadata, 3),
             additionalData: {
-                // unsettledBlobTransaction: this.extractUnsettledBlobTransaction(metadata, 1),
-                // blob: this.extractBlob(metadata, 2),
-                // verifier: hyliOutputTuple?.[1],
-                // relatedTxHash: hyliOutputTuple?.[2],
-                // hyliOutput: hyliOutputTuple?.[3],
-                // proofIndex: this.extractUsize(metadata, 5)
+                unsettledBlobTransaction: this.extractUnsettledBlobTransaction(metadata, 1),
+                blob: this.extractBlob(metadata, 2),
+                verifier: hyliOutputTuple?.[1],
+                relatedTxHash: hyliOutputTuple?.[2],
+                hyliOutput: hyliOutputTuple?.[3],
+                proofIndex: this.extractUsize(metadata, 5)
             }
         };
     }
@@ -207,7 +197,6 @@ export class TxEventProcessor {
     private static processContractDeleted(metadata: Record<string, any>): ProcessedEvent {
         // ContractDeleted(&'a TxHash, &'a ContractName)
         return {
-            type: 'ContractDeleted',
             txHash: this.extractTxHash(metadata, 0),
             contractName: this.extractContractName(metadata, 1),
         };
@@ -216,7 +205,6 @@ export class TxEventProcessor {
     private static processContractRegistered(metadata: Record<string, any>): ProcessedEvent {
         // ContractRegistered(&'a TxHash, &'a ContractName, &'a Contract, &'a Option<Vec<u8>>)
         return {
-            type: 'ContractRegistered',
             txHash: this.extractTxHash(metadata, 0),
             contractName: this.extractContractName(metadata, 1),
             additionalData: {
@@ -229,7 +217,6 @@ export class TxEventProcessor {
     private static processContractStateUpdated(metadata: Record<string, any>): ProcessedEvent {
         // ContractStateUpdated(&'a TxHash, &'a ContractName, &'a Contract, &'a StateCommitment)
         return {
-            type: 'ContractStateUpdated',
             txHash: this.extractTxHash(metadata, 0),
             contractName: this.extractContractName(metadata, 1),
             additionalData: {
@@ -242,7 +229,6 @@ export class TxEventProcessor {
     private static processContractProgramIdUpdated(metadata: Record<string, any>): ProcessedEvent {
         // ContractProgramIdUpdated(&'a TxHash, &'a ContractName, &'a Contract, &'a ProgramId)
         return {
-            type: 'ContractProgramIdUpdated',
             txHash: this.extractTxHash(metadata, 0),
             contractName: this.extractContractName(metadata, 1),
             programId: this.extractProgramId(metadata, 3),
@@ -255,7 +241,6 @@ export class TxEventProcessor {
     private static processContractTimeoutWindowUpdated(metadata: Record<string, any>): ProcessedEvent {
         // ContractTimeoutWindowUpdated(&'a TxHash, &'a ContractName, &'a Contract, &'a TimeoutWindow)
         return {
-            type: 'ContractTimeoutWindowUpdated',
             txHash: this.extractTxHash(metadata, 0),
             contractName: this.extractContractName(metadata, 1),
             additionalData: {
@@ -300,10 +285,6 @@ export class TxEventProcessor {
         return metadata[index];
     }
 
-    private static extractVerifiedProofTransaction(metadata: Record<string, any>, index: number): any {
-        return metadata[index];
-    }
-
     private static extractUnsettledBlobTransaction(metadata: Record<string, any>, index: number): any {
         return metadata[index];
     }
@@ -340,61 +321,6 @@ export class TxEventProcessor {
     }
 
     /**
-     * Get a human-readable description of the event
-     */
-    static getEventDescription(processedEvent: ProcessedEvent): string {
-        switch (processedEvent.type) {
-            case 'RejectedBlobTransaction':
-                return `Blob transaction ${processedEvent.txHash} was rejected`;
-            
-            case 'DuplicateBlobTransaction':
-                return `Duplicate blob transaction detected: ${processedEvent.txHash}`;
-            
-            case 'SequencedBlobTransaction':
-                return `Blob transaction ${processedEvent.txHash} was successfully sequenced`;
-            
-            case 'SequencedProofTransaction':
-                return `Proof transaction ${processedEvent.txHash} was successfully sequenced`;
-            
-            case 'Settled':
-                return `Transaction ${processedEvent.txHash} was settled successfully`;
-            
-            case 'SettledAsFailed':
-                return `Transaction ${processedEvent.txHash} was settled as failed: ${processedEvent.error}`;
-            
-            case 'TimedOut':
-                return `Transaction ${processedEvent.txHash} timed out`;
-            
-            case 'TxError':
-                return `Transaction ${processedEvent.txHash} encountered an error: ${processedEvent.error}`;
-            
-            case 'NewProof':
-                return `New proof generated for transaction ${processedEvent.txHash}`;
-            
-            case 'BlobSettled':
-                return `Blob settled for transaction ${processedEvent.txHash}`;
-            
-            case 'ContractDeleted':
-                return `Contract ${processedEvent.contractName} was deleted`;
-            
-            case 'ContractRegistered':
-                return `Contract ${processedEvent.contractName} was registered`;
-            
-            case 'ContractStateUpdated':
-                return `State updated for contract ${processedEvent.contractName}`;
-            
-            case 'ContractProgramIdUpdated':
-                return `Program ID updated for contract ${processedEvent.contractName}`;
-            
-            case 'ContractTimeoutWindowUpdated':
-                return `Timeout window updated for contract ${processedEvent.contractName}`;
-            
-            default:
-                return `Event: ${processedEvent.type}`;
-        }
-    }
-
-    /**
      * Get the status/severity level of the event
      */
     static getEventStatus(processedEvent: ProcessedEvent): 'success' | 'error' | 'warning' | 'info' {
@@ -405,11 +331,11 @@ export class TxEventProcessor {
         switch (processedEvent.type) {
             case 'RejectedBlobTransaction':
             case 'DuplicateBlobTransaction':
+            case 'TxError':
                 return 'warning';
             
             case 'SettledAsFailed':
             case 'TimedOut':
-            case 'TxError':
                 return 'error';
             
             case 'Settled':
