@@ -1,4 +1,4 @@
-import { getNetworkIndexerApiUrl, network } from "@/state/network";
+import { getNetworkIndexerApiUrl } from "@/state/network";
 
 export type HyliOutput = {
     blobs: number[];
@@ -23,7 +23,9 @@ export type BlobInfo = {
 export type EventInfo = {
     name: string;
     block_hash: string;
-    metadata?: Record<string, any>;
+    block_height: number;
+    index: number;
+    metadata?: any;
 };
 
 export type TransactionInfo = {
@@ -129,24 +131,27 @@ export class TransactionStore {
                 `${getNetworkIndexerApiUrl(this.network)}/v1/indexer/transaction/hash/${tx.tx_hash}/events?no_cache=${Date.now()}`,
             );
             const eventsData = await eventsResponse.json();
-            // Preserve block_hash and other metadata when flattening events
-            // Retrocompatibility
-            if (network.value === "first-testnet")
-                tx.events = eventsData.flatMap((eventEntry: { block_hash: string; events: Omit<EventInfo, "block_hash">[] }) =>
-                    (eventEntry.events || []).map((event) => ({
-                        ...event,
+
+            const events = eventsData.flatMap((eventEntry: { block_hash: string; block_height: number; events: any[] }) =>
+                (eventEntry.events || []).map((event) => {
+                    const eventName = Object.keys(event).find(key => key !== 'index') || '';
+                    console.log(event);
+                    return {
+                        name: eventName,
                         block_hash: eventEntry.block_hash,
-                    })),
-                );
-            else {
-                tx.events = eventsData.flatMap((eventEntry: { block_hash: string; events: Omit<EventInfo, "block_hash">[] }) =>
-                    (eventEntry.events || []).map((event) => ({
-                        name: Object.keys(event)[0],
-                        metadata: (event as any)[Object.keys(event)[0]][1], // Common format -> get the actual meat of the event
-                        block_hash: eventEntry.block_hash,
-                    })),
-                );
-            }
+                        block_height: eventEntry.block_height,
+                        index: event.index || 0,
+                        metadata: event[eventName],
+                    };
+                }),
+            );
+            tx.events = events.sort((a: EventInfo, b: EventInfo) => {
+                const heightDiff = (a.block_height ?? 0) - (b.block_height ?? 0);
+                if (heightDiff !== 0) {
+                    return heightDiff;
+                }
+                return (a.index ?? 0) - (b.index ?? 0);
+            });
         }
     }
 
