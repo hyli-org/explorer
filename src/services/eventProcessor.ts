@@ -24,11 +24,11 @@ export class TxEventProcessor {
      * Process a raw event metadata object based on the event name
      */
     static processEvent(event: EventInfo): ProcessedEvent {
-        const { event_name: eventName, metadata } = event;
+        const { name: name, metadata } = event;
         if (!metadata) {
-            return { type: eventName };
+            return { type: name };
         }
-        switch (eventName) {
+        switch (name) {
             case 'RejectedBlobTransaction':
                 return this.processRejectedBlobTransaction(metadata);
             
@@ -76,7 +76,7 @@ export class TxEventProcessor {
             
             default:
                 return {
-                    type: eventName,
+                    type: name,
                     additionalData: metadata
                 };
         }
@@ -170,7 +170,6 @@ export class TxEventProcessor {
             additionalData: {
                 blob: this.extractBlob(metadata, 1),
                 verifier: hyliOutputTuple?.[1],
-                relatedTxHash: hyliOutputTuple?.[2],
                 hyliOutput: hyliOutputTuple?.[3],
                 proofIndex: this.extractUsize(metadata, 4)
             }
@@ -184,11 +183,8 @@ export class TxEventProcessor {
             txHash: this.extractTxHash(metadata, 0),
             blobIndex: this.extractBlobIndex(metadata, 3),
             additionalData: {
-                unsettledBlobTransaction: this.extractUnsettledBlobTransaction(metadata, 1),
                 blob: this.extractBlob(metadata, 2),
                 verifier: hyliOutputTuple?.[1],
-                relatedTxHash: hyliOutputTuple?.[2],
-                hyliOutput: hyliOutputTuple?.[3],
                 proofIndex: this.extractUsize(metadata, 5)
             }
         };
@@ -290,7 +286,14 @@ export class TxEventProcessor {
     }
 
     private static extractBlob(metadata: Record<string, any>, index: number): any {
-        return metadata[index];
+        let blob = metadata[index];
+        console.log(blob);
+        if (blob && blob.data) {
+            blob.data = Array.isArray(blob.data) 
+                ? blob.data.map((byte: { toString: (arg0: number) => string; }) => byte.toString(16).padStart(2, '0')).join('')
+                : blob.data;
+        }
+        return blob;
     }
 
     private static extractContract(metadata: Record<string, any>, index: number): any {

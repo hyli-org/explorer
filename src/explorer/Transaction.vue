@@ -319,7 +319,7 @@ watch(
                 <div>
                     <div v-for="(event, index) in data.events" :key="index" class="p-4 border-b-2">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-secondary">Event #{{ event.event_index }}: {{ event.name }}</span>
+                            <span class="text-sm font-medium text-secondary">{{ event.name }}</span>
                             <RouterLink
                                 v-if="event.block_hash"
                                 :to="{ name: 'BlockHash', params: { block_hash: event.block_hash } }"

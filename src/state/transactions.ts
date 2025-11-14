@@ -24,8 +24,7 @@ export type EventInfo = {
     name: string;
     block_hash: string;
     block_height: number;
-    event_index: number;
-    event_name: string;
+    index: number;
     metadata?: any;
 };
 
@@ -135,18 +134,24 @@ export class TransactionStore {
 
             const events = eventsData.flatMap((eventEntry: { block_hash: string; block_height: number; events: any[] }) =>
                 (eventEntry.events || []).map((event) => {
-                    const eventName = Object.keys(event).find(key => key !== 'event_index') || '';
+                    const eventName = Object.keys(event).find(key => key !== 'index') || '';
+                    console.log(event);
                     return {
                         name: eventName,
                         block_hash: eventEntry.block_hash,
                         block_height: eventEntry.block_height,
-                        event_index: event.event_index || 0,
-                        event_name: eventName,
+                        index: event.index || 0,
                         metadata: event[eventName],
                     };
                 }),
             );
-            tx.events = events.sort((a: EventInfo, b: EventInfo) => a.event_index - b.event_index);
+            tx.events = events.sort((a: EventInfo, b: EventInfo) => {
+                const heightDiff = (a.block_height ?? 0) - (b.block_height ?? 0);
+                if (heightDiff !== 0) {
+                    return heightDiff;
+                }
+                return (a.index ?? 0) - (b.index ?? 0);
+            });
         }
     }
 
