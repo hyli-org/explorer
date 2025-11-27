@@ -21,12 +21,12 @@ jobs:
 
       - uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: "projects/676086123495/locations/global/workloadIdentityPools/backend-dev-pool/providers/explorer-github-provider"
+          workload_identity_provider: "projects/493106494045/locations/global/workloadIdentityPools/hyli-all-pool/providers/hyli-github-provider"
           service_account: "ci-builder-sa@hyli-shared-all.iam.gserviceaccount.com"
 
       - name: "Authenticate docker on gcp"
         run: |
-          gcloud auth configure-docker europe-west1-docker.pkg.dev
+          gcloud auth configure-docker ${{ env.AR_REPO_LOCATION }}
 
       - name: Docker meta
         id: meta
