@@ -86,7 +86,7 @@ watchEffect(() => {
 
 export const getNetworkIndexerApiUrl = (network: string) => {
     if (network === "localhost") {
-        const port = getLocalhostPort("indexer", "4321");
+        const port = getLocalhostPort("indexer", "4322");
         return `http://localhost:${port}`;
     }
     return {
