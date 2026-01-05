@@ -9,8 +9,18 @@ export type Pair = {
 };
 
 export type PairInfo = {
-    // Add fields as needed based on the actual Rust struct
-    [key: string]: any;
+    base: AssetInfo;
+    quote: AssetInfo;
+};
+
+export type AssetInfo = {
+    scale: number;
+    contract_name: string;
+};
+
+export type WithdrawDestination = {
+    network: string;
+    address: string;
 };
 
 export type Order = {
@@ -49,10 +59,7 @@ export type PermissionnedOrderbookAction =
           Withdraw: {
               symbol: string;
               amount: number;
-              destinaction: {
-                  network: string;
-                  address: string;
-              };
+              destination: WithdrawDestination;
           };
       };
 
@@ -88,7 +95,16 @@ const schema = BorshSchema.Enum({
                     base: BorshSchema.String,
                     quote: BorshSchema.String,
                 }),
-                info: BorshSchema.Struct({}), // Adjust based on actual PairInfo structure
+                info: BorshSchema.Struct({
+                    base: BorshSchema.Struct({
+                        scale: BorshSchema.u64,
+                        contract_name: BorshSchema.String,
+                    }),
+                    quote: BorshSchema.Struct({
+                        scale: BorshSchema.u64,
+                        contract_name: BorshSchema.String,
+                    }),
+                }),
             }),
             Deposit: BorshSchema.Struct({
                 symbol: BorshSchema.String,
