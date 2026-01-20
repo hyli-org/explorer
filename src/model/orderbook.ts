@@ -61,6 +61,9 @@ export type PermissionnedOrderbookAction =
               amount: number;
               destination: WithdrawDestination;
           };
+      }
+    | {
+          UpgradeContract: Uint8Array;
       };
 
 export type PermissionlessOrderbookAction = {
@@ -140,6 +143,9 @@ const schema = BorshSchema.Enum({
                     network: BorshSchema.String,
                     address: BorshSchema.String,
                 }),
+            }),
+            UpgradeContract: BorshSchema.Struct({
+                new_program_id: BorshSchema.Vec(BorshSchema.u8),
             }),
         }),
         global_nonce: BorshSchema.u32,
