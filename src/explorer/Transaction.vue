@@ -6,7 +6,7 @@ import { transactionStore, proofStore, blockStore } from "@/state/data";
 import { getTimeAgo } from "@/state/utils";
 import { computed, watch, type ComputedRef, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import type { TransactionInfo } from "@/state/transactions";
+import type { TransactionInfo, EventInfo } from "@/state/transactions";
 import type { ProofInfo } from "@/state/proofs";
 import { decodeBlobData } from "@/explorer/utils/blobDecoder";
 import { TxEventProcessor } from "@/services/eventProcessor";
@@ -105,6 +105,53 @@ const toggleRawData = (index: number) => {
     } else {
         rawDataBlobs.value.add(index);
     }
+};
+
+const getProcessedEvent = (event: EventInfo) => {
+    return TxEventProcessor.processEvent(event);
+};
+
+const getEventStatusClass = (event: EventInfo) => {
+    const status = TxEventProcessor.getEventStatus(getProcessedEvent(event));
+    if (status === "success") {
+        return "bg-green-100 text-green-700";
+    }
+    if (status === "error") {
+        return "bg-red-100 text-red-700";
+    }
+    if (status === "warning") {
+        return "bg-amber-100 text-amber-700";
+    }
+    return "bg-secondary/10 text-secondary";
+};
+
+const getEventSummary = (event: EventInfo) => {
+    const processed = getProcessedEvent(event);
+    if (processed.error) {
+        return processed.error;
+    }
+
+    const chunks: string[] = [];
+    if (processed.contractName) {
+        chunks.push(`contract: ${processed.contractName}`);
+    }
+    if (processed.blobIndex !== undefined) {
+        chunks.push(`blob index: ${processed.blobIndex}`);
+    }
+    if (processed.laneId) {
+        chunks.push(`lane: ${processed.laneId}`);
+    }
+    if (processed.txHash) {
+        chunks.push(`tx: ${processed.txHash}`);
+    }
+    if (processed.reason) {
+        chunks.push(processed.reason);
+    }
+    return chunks.join(" | ");
+};
+
+const formatEventPayload = (event: EventInfo) => {
+    return JSON.stringify(getProcessedEvent(event), null, 2);
 };
 
 // Mark as initialized after mount to prevent immediate URL updates
@@ -318,8 +365,16 @@ watch(
                 <h3 class="card-header">Events</h3>
                 <div>
                     <div v-for="(event, index) in data.events" :key="index" class="p-4 border-b-2">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-secondary">{{ event.name }}</span>
+                        <div class="flex items-start justify-between mb-2 gap-3">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-sm font-semibold text-secondary">{{ event.name }}</span>
+                                <span
+                                    :class="getEventStatusClass(event)"
+                                    class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+                                >
+                                    {{ TxEventProcessor.getEventStatus(getProcessedEvent(event)) }}
+                                </span>
+                            </div>
                             <RouterLink
                                 v-if="event.block_hash"
                                 :to="{ name: 'BlockHash', params: { block_hash: event.block_hash } }"
@@ -330,9 +385,9 @@ watch(
                         </div>
                         <div v-if="event.metadata" class="mt-2 relative">
                             <pre class="text-xs bg-secondary/5 p-2 rounded overflow-auto min-h-12 max-h-40 pr-12">{{
-                                TxEventProcessor.processEvent(event)
+                                formatEventPayload(event)
                             }}</pre>
-                            <CopyButton :text="JSON.stringify(event.metadata)" class="absolute top-2 right-2" />
+                            <CopyButton :text="JSON.stringify(event.raw ?? event.metadata)" class="absolute top-2 right-2" />
                         </div>
                     </div>
                 </div>

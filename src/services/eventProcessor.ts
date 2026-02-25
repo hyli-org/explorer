@@ -89,6 +89,9 @@ export class TxEventProcessor {
             laneId: this.extractLaneId(metadata, 1),
             reason: 'Transaction rejected during blob processing',
             additionalData: {
+                blobCount: this.extractUsize(metadata, 2, "blob_count"),
+                blobs: this.extractField(metadata, 3, "blobs"),
+                identity: this.extractString(metadata, 6, "identity"),
                 context: this.extractTxContext(metadata, 4)
             }
         };
@@ -108,6 +111,9 @@ export class TxEventProcessor {
             txHash: this.extractTxHash(metadata, 0),
             laneId: this.extractLaneId(metadata, 1),
             additionalData: {
+                blobCount: this.extractUsize(metadata, 2, "blob_count"),
+                blobs: this.extractField(metadata, 3, "blobs"),
+                identity: this.extractString(metadata, 6, "identity"),
                 context: this.extractTxContext(metadata, 4)
             }
         };
@@ -119,6 +125,7 @@ export class TxEventProcessor {
             txHash: this.extractTxHash(metadata, 0),
             laneId: this.extractLaneId(metadata, 1),
             additionalData: {
+                proof: this.extractField(metadata, 3, "proof")
             }
         };
     }
@@ -128,6 +135,7 @@ export class TxEventProcessor {
         return {
             txHash: this.extractTxHash(metadata, 0),
             additionalData: {
+                settlement: this.extractField(metadata, 1, "settlement")
             }
         };
     }
@@ -136,8 +144,9 @@ export class TxEventProcessor {
         // SettledAsFailed(&'a TxHash, &'a UnsettledBlobTransaction, &'a str)
         return {
             txHash: this.extractTxHash(metadata, 0),
-            error: this.extractString(metadata, 2),
+            error: this.extractString(metadata, 2, "error"),
             additionalData: {
+                settlement: this.extractField(metadata, 1, "settlement")
             }
         };
     }
@@ -157,7 +166,7 @@ export class TxEventProcessor {
         // TxError(&'a TxHash, &'a str)
         return {
             txHash: this.extractTxHash(metadata, 0),
-            error: this.extractString(metadata, 1)
+            error: this.extractString(metadata, 1, "error")
         };
     }
 
@@ -171,7 +180,9 @@ export class TxEventProcessor {
                 blob: this.extractBlob(metadata, 1),
                 verifier: hyliOutputTuple?.[1],
                 hyliOutput: hyliOutputTuple?.[3],
-                proofIndex: this.extractUsize(metadata, 4)
+                proofIndex: this.extractUsize(metadata, 4, "proof_index"),
+                proofTxHash: this.extractString(metadata, 3, "proof_tx_hash"),
+                proofParentDpHash: this.extractString(metadata, 4, "proof_parent_dp_hash")
             }
         };
     }
@@ -185,7 +196,10 @@ export class TxEventProcessor {
             additionalData: {
                 blob: this.extractBlob(metadata, 2),
                 verifier: hyliOutputTuple?.[1],
-                proofIndex: this.extractUsize(metadata, 5)
+                proofIndex: this.extractUsize(metadata, 5, "blob_proof_index"),
+                proofTxHash: this.extractString(metadata, 4, "proof_tx_hash"),
+                proofParentDpHash: this.extractString(metadata, 5, "proof_parent_dp_hash"),
+                settlement: this.extractField(metadata, 1, "settlement")
             }
         };
     }
@@ -248,46 +262,70 @@ export class TxEventProcessor {
 
     // Helper methods for extracting typed data from metadata
     private static extractTxHash(metadata: Record<string, any>, index: number): string | undefined {
-        return metadata[index][1]?.toString();
+        const directTxHash = this.extractField(metadata, index, "tx_hash");
+        if (typeof directTxHash === "string") {
+            return directTxHash;
+        }
+
+        const txId = this.extractField(metadata, index, "tx_id");
+        if (Array.isArray(txId)) {
+            return txId.map((part) => String(part)).join("/");
+        }
+        if (typeof txId === "string") {
+            return txId;
+        }
+
+        const value = metadata?.[index];
+        if (Array.isArray(value) && value[1] !== undefined) {
+            return value[1]?.toString();
+        }
+        return undefined;
     }
 
     private static extractLaneId(metadata: Record<string, any>, index: number): string | undefined {
-        return metadata[index]?.toString();
+        const laneId = this.extractField(metadata, index, "lane_id");
+        if (laneId === undefined || laneId === null) {
+            return undefined;
+        }
+        return laneId.toString();
     }
 
-    private static extractUsize(metadata: Record<string, any>, index: number): number | undefined {
-        const value = metadata[index];
+    private static extractUsize(metadata: Record<string, any>, index: number, key?: string): number | undefined {
+        const value = this.extractField(metadata, index, key);
         return typeof value === 'number' ? value : undefined;
     }
 
-    private static extractString(metadata: Record<string, any>, index: number): string | undefined {
-        return metadata[index]?.toString();
+    private static extractString(metadata: Record<string, any>, index: number, key?: string): string | undefined {
+        const value = this.extractField(metadata, index, key);
+        if (value === undefined || value === null) {
+            return undefined;
+        }
+        return value.toString();
     }
 
     private static extractContractName(metadata: Record<string, any>, index: number): string | undefined {
-        return metadata[index]?.toString();
+        return this.extractString(metadata, index, "contract_name");
     }
 
     private static extractProgramId(metadata: Record<string, any>, index: number): string | undefined {
-        return metadata[index]?.toString();
+        return this.extractString(metadata, index, "program_id");
     }
 
     private static extractBlobIndex(metadata: Record<string, any>, index: number): number | undefined {
-        const value = metadata[index];
+        const value = this.extractField(metadata, index, "blob_index");
         return typeof value === 'number' ? value : undefined;
     }
 
     private static extractTxContext(metadata: Record<string, any>, index: number): any {
-        return metadata[index];
+        return this.extractField(metadata, index, "tx_context");
     }
 
     private static extractUnsettledBlobTransaction(metadata: Record<string, any>, index: number): any {
-        return metadata[index];
+        return this.extractField(metadata, index, "settlement");
     }
 
     private static extractBlob(metadata: Record<string, any>, index: number): any {
-        let blob = metadata[index];
-        console.log(blob);
+        let blob = this.extractField(metadata, index, "blob");
         if (blob && blob.data) {
             blob.data = Array.isArray(blob.data) 
                 ? blob.data.map((byte: { toString: (arg0: number) => string; }) => byte.toString(16).padStart(2, '0')).join('')
@@ -309,18 +347,25 @@ export class TxEventProcessor {
     }
 
     private static extractTuple(metadata: Record<string, any>, index: number): any[] | undefined {
-        const value = metadata[index];
+        const value = this.extractField(metadata, index);
         return Array.isArray(value) ? value : undefined;
     }
 
     private static extractOptionalTuple(metadata: Record<string, any>, index: number): any[] | undefined {
-        const value = metadata[index];
+        const value = this.extractField(metadata, index);
         return value && Array.isArray(value) ? value : undefined;
     }
 
     private static extractOptionalBytes(metadata: Record<string, any>, index: number): number[] | undefined {
-        const value = metadata[index];
+        const value = this.extractField(metadata, index);
         return value && Array.isArray(value) ? value : undefined;
+    }
+
+    private static extractField(metadata: Record<string, any>, index: number, key?: string): any {
+        if (key && metadata && typeof metadata === "object" && key in metadata) {
+            return metadata[key];
+        }
+        return metadata?.[index];
     }
 
     /**
