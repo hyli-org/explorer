@@ -1,20 +1,29 @@
 import { BorshSchema, borshDeserialize } from "borsher";
 
-export type AuthMethod = {
-    Password: {
-        hash: string;
-    };
-    Jwt: {
-        hash: number[];
-    };
-    Ethereum: {
-        address: string;
-    };
-    Uninitialized: {};
-    HyliApp: {
-        address: string;
-    };
-};
+export type AuthMethod =
+    | {
+          Password: {
+              hash: string;
+          };
+      }
+    | {
+          Jwt: {
+              hash: number[];
+          };
+      }
+    | {
+          Ethereum: {
+              address: string;
+          };
+      }
+    | {
+          Uninitialized: {};
+      }
+    | {
+          HyliApp: {
+              address: string;
+          };
+      };
 
 export type WalletAction =
     | {
@@ -38,7 +47,7 @@ export type WalletAction =
               key: string;
               expiration_date: number;
               whitelist?: string[];
-              laneId?: string;
+              lane_id?: string;
               nonce: number;
           };
       }
@@ -63,12 +72,12 @@ export type WalletAction =
       };
 
 export const deserializeWalletAction = (data: number[]): WalletAction => {
-    let action: WalletAction =  borshDeserialize(schema, new Uint8Array(data));
+    const action: WalletAction = borshDeserialize(schema, new Uint8Array(data));
     if ("RegisterIdentity" in action) {
         action.RegisterIdentity.salt = "***";
         action.RegisterIdentity.invite_code = "***";
     }
-    return action
+    return action;
 };
 
 const schema = BorshSchema.Enum({
