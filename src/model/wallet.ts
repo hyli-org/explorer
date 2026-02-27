@@ -10,6 +10,10 @@ export type AuthMethod = {
     Ethereum: {
         address: string;
     };
+    Uninitialized: {};
+    HyliApp: {
+        address: string;
+    };
 };
 
 export type WalletAction =
@@ -50,6 +54,12 @@ export type WalletAction =
               account: string;
               nonce: number;
           };
+      }
+    | {
+          UpdateInviteCodePublicKey: {
+              invite_code_public_key: number[];
+              smt_root: number[];
+          };
       };
 
 export const deserializeWalletAction = (data: number[]): WalletAction => {
@@ -76,6 +86,10 @@ const schema = BorshSchema.Enum({
             Ethereum: BorshSchema.Struct({
                 address: BorshSchema.String,
             }),
+            Uninitialized: BorshSchema.Unit,
+            HyliApp: BorshSchema.Struct({
+                address: BorshSchema.String,
+            }),
         }),
         invite_code: BorshSchema.String,
     }),
@@ -99,5 +113,9 @@ const schema = BorshSchema.Enum({
     UseSessionKey: BorshSchema.Struct({
         account: BorshSchema.String,
         nonce: BorshSchema.u128,
+    }),
+    UpdateInviteCodePublicKey: BorshSchema.Struct({
+        invite_code_public_key: BorshSchema.Array(BorshSchema.u8, 33),
+        smt_root: BorshSchema.Array(BorshSchema.u8, 32),
     }),
 });
