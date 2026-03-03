@@ -8,7 +8,7 @@ import { deserializeSmtTokenAction } from "@/model/smt_token";
 import { deserializeFaucetAction } from "@/model/faucet";
 import { deserializeOrderbookAction } from "@/model/orderbook";
 import { deserializeBoardGameAction, deserializeCrashGameAction } from "@/model/orange_trail";
-import { deserializeUtxoStateAction, deserializeUtxoBlob } from "@/model/utxo-state";
+import { deserializeUtxoStateAction, deserializeUtxoBlob, deserializeSmtInclusionProof } from "@/model/utxo-state";
 
 export const parseHexToVec = (hex: string): number[] | null => {
     const tokens = hex.match(/[0-9a-f]{2}/gi);
@@ -113,6 +113,9 @@ export const decodeBlobData = (hex: string, contractName: string): string => {
             case "hyli_utxo":
                 const utxoBlob = deserializeUtxoBlob(data);
                 return formatObject(utxoBlob);
+            case "hyli_smt_incl_proof":
+                const smtInclProofBlob = deserializeSmtInclusionProof(data);
+                return formatObject(smtInclProofBlob);
             default:
                 if (contractName.startsWith("wallet")) {
                     const walletAction = deserializeWalletAction(data);
