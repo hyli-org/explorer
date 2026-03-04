@@ -111,47 +111,72 @@ const getProcessedEvent = (event: EventInfo) => {
     return TxEventProcessor.processEvent(event);
 };
 
+const getEventStatus = (event: EventInfo) => {
+    return TxEventProcessor.getEventStatus(getProcessedEvent(event), event.name);
+};
+
 const getEventStatusClass = (event: EventInfo) => {
-    const status = TxEventProcessor.getEventStatus(getProcessedEvent(event));
-    if (status === "success") {
-        return "bg-green-100 text-green-700";
-    }
-    if (status === "error") {
-        return "bg-red-100 text-red-700";
-    }
-    if (status === "warning") {
-        return "bg-amber-100 text-amber-700";
-    }
-    return "bg-secondary/10 text-secondary";
+    const status = getEventStatus(event);
+    if (status === "success") return "bg-green-100 text-green-700";
+    if (status === "error") return "bg-red-100 text-red-700";
+    if (status === "warning") return "bg-amber-100 text-amber-700";
+    return "bg-blue-100 text-blue-600";
 };
 
-const getEventSummary = (event: EventInfo) => {
+const getEventStatusIcon = (event: EventInfo) => {
+    const status = getEventStatus(event);
+    if (status === "success") return "✓";
+    if (status === "error") return "✕";
+    if (status === "warning") return "⚠";
+    return "ℹ";
+};
+
+// Track which events are showing raw JSON
+const rawJsonEvents = ref(new Set<number>());
+const toggleRawJson = (index: number) => {
+    if (rawJsonEvents.value.has(index)) {
+        rawJsonEvents.value.delete(index);
+    } else {
+        rawJsonEvents.value.add(index);
+    }
+};
+
+const formatTxErrorVariant = (variant: string): string => {
+    return variant.replace(/([A-Z])/g, ' $1').trim();
+};
+
+const getEventsForBlob = (blobIndex: number): EventInfo[] => {
+    const events = (data.value as TransactionInfo)?.events;
+    if (!events) return [];
+    return events.filter((event) => {
+        const processed = getProcessedEvent(event);
+        if (processed.txErrorVariant === 'NotReadyToSettle' || processed.txErrorVariant === 'NotNextToSettle') return false;
+        if (event.name === 'TxError') return processed.txErrorFields?.blob_index === blobIndex;
+        return processed.blobIndex === blobIndex;
+    });
+};
+
+const getBlobEventLine = (event: EventInfo): string => {
     const processed = getProcessedEvent(event);
-    if (processed.error) {
-        return processed.error;
+    if (event.name === 'TxError') {
+        const variant = formatTxErrorVariant(processed.txErrorVariant ?? '');
+        const message = processed.txErrorFields?.message;
+        return message ? `${variant}: ${message}` : variant;
     }
-
-    const chunks: string[] = [];
-    if (processed.contractName) {
-        chunks.push(`contract: ${processed.contractName}`);
-    }
-    if (processed.blobIndex !== undefined) {
-        chunks.push(`blob index: ${processed.blobIndex}`);
-    }
-    if (processed.laneId) {
-        chunks.push(`lane: ${processed.laneId}`);
-    }
-    if (processed.txHash) {
-        chunks.push(`tx: ${processed.txHash}`);
-    }
-    if (processed.reason) {
-        chunks.push(processed.reason);
-    }
-    return chunks.join(" | ");
+    if (event.name === 'NewProof') return `New proof received`;
+    if (event.name === 'BlobSettled') return `Blob settled`;
+    return event.name;
 };
 
-const formatEventPayload = (event: EventInfo) => {
-    return JSON.stringify(getProcessedEvent(event), null, 2);
+const txErrorFieldLabels: Record<string, string> = {
+    blob_index: 'Blob Index',
+    proof_index: 'Proof Index',
+    proof_identity: 'Proof Identity',
+    tx_identity: 'TX Identity',
+    proof_hash: 'Proof Hash',
+    tx_hash: 'TX Hash',
+    contract_name: 'Contract',
+    message: 'Message',
 };
 
 // Mark as initialized after mount to prevent immediate URL updates
@@ -308,6 +333,33 @@ watch(
                                     </div>
                                 </div>
                             </div>
+                            <!-- Event log for this blob -->
+                            <div v-if="getEventsForBlob(index).length > 0" class="mt-2">
+                                <div class="text-xs text-neutral font-medium mb-1">Events:</div>
+                                <div class="space-y-1">
+                                    <div
+                                        v-for="(event, ei) in getEventsForBlob(index)"
+                                        :key="ei"
+                                        class="flex items-start gap-2 text-xs py-0.5"
+                                    >
+                                        <span
+                                            :class="{
+                                                'bg-green-500': getEventStatus(event) === 'success',
+                                                'bg-red-500': getEventStatus(event) === 'error',
+                                                'bg-amber-400': getEventStatus(event) === 'warning',
+                                                'bg-blue-400': getEventStatus(event) === 'info',
+                                            }"
+                                            class="w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0"
+                                        ></span>
+                                        <span class="font-medium text-secondary/70 flex-shrink-0">{{ event.name }}</span>
+                                        <span
+                                            :class="getEventStatus(event) === 'error' ? 'text-red-600 font-medium' : 'text-neutral'"
+                                            class="break-all"
+                                        >{{ getBlobEventLine(event) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div v-if="blob.proof_outputs && blob.proof_outputs.length > 0">
                                 <div class="text-sm text-neutral mb-2">Proofs:</div>
                                 <div
@@ -363,33 +415,115 @@ watch(
 
             <div v-else-if="activeTab === 'Events' && isBlob(data) && data?.events" class="data-card">
                 <h3 class="card-header">Events</h3>
-                <div>
-                    <div v-for="(event, index) in data.events" :key="index" class="p-4 border-b-2">
-                        <div class="flex items-start justify-between mb-2 gap-3">
+                <div class="divide-y divide-secondary/10">
+                    <template v-for="(event, index) in data.events" :key="index">
+                    <div v-if="getProcessedEvent(event).txErrorVariant !== 'NotReadyToSettle' && getProcessedEvent(event).txErrorVariant !== 'NotNextToSettle'" class="p-4">
+                        <!-- Event header -->
+                        <div class="flex items-start justify-between gap-3 mb-3">
                             <div class="flex items-center gap-2 min-w-0">
+                                <span
+                                    :class="getEventStatusClass(event)"
+                                    class="flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold flex-shrink-0"
+                                >{{ getEventStatusIcon(event) }}</span>
                                 <span class="text-sm font-semibold text-secondary">{{ event.name }}</span>
                                 <span
                                     :class="getEventStatusClass(event)"
                                     class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
-                                >
-                                    {{ TxEventProcessor.getEventStatus(getProcessedEvent(event)) }}
-                                </span>
+                                >{{ getEventStatus(event) }}</span>
                             </div>
                             <RouterLink
                                 v-if="event.block_hash"
                                 :to="{ name: 'BlockHash', params: { block_hash: event.block_hash } }"
-                                class="text-xs text-link flex items-center gap-1"
-                            >
-                                Block {{ event.block_height }} -- {{ event.block_hash }}
-                            </RouterLink>
+                                class="text-xs text-link flex-shrink-0"
+                            >Block #{{ event.block_height }}</RouterLink>
                         </div>
-                        <div v-if="event.metadata" class="mt-2 relative">
-                            <pre class="text-xs bg-secondary/5 p-2 rounded overflow-auto min-h-12 max-h-40 pr-12">{{
-                                formatEventPayload(event)
-                            }}</pre>
-                            <CopyButton :text="JSON.stringify(event.raw ?? event.metadata)" class="absolute top-2 right-2" />
+
+                        <!-- TxError event -->
+                        <template v-if="event.name === 'TxError'">
+                            <div class="space-y-2">
+                                <div
+                                    :class="getEventStatus(event) === 'info' ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-red-50 border-red-200 text-red-800'"
+                                    class="rounded-lg border px-3 py-2"
+                                >
+                                    <span class="text-xs font-semibold uppercase tracking-wide opacity-60">Error</span>
+                                    <div class="font-medium mt-0.5">{{ formatTxErrorVariant(getProcessedEvent(event).txErrorVariant ?? '') }}</div>
+                                </div>
+                                <!-- TxError fields (e.g. IdentityMismatch, OnChainExecutionFailed…) -->
+                                <div v-if="getProcessedEvent(event).txErrorFields" class="grid grid-cols-1 gap-1 pl-1">
+                                    <div v-for="(val, key) in getProcessedEvent(event).txErrorFields" :key="key" class="flex gap-2 text-xs">
+                                        <span class="text-neutral font-medium min-w-24">{{ txErrorFieldLabels[key] ?? key }}:</span>
+                                        <span class="text-mono break-all">{{ val }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- NewProof / BlobSettled -->
+                        <template v-else-if="event.name === 'NewProof' || event.name === 'BlobSettled'">
+                            <div class="grid grid-cols-1 gap-1.5">
+                                <div v-if="getProcessedEvent(event).blobIndex !== undefined" class="flex gap-2 text-xs">
+                                    <span class="text-neutral font-medium min-w-24">Blob Index:</span>
+                                    <span class="font-mono">{{ getProcessedEvent(event).blobIndex }}</span>
+                                </div>
+                                <div v-if="getProcessedEvent(event).additionalData?.blob?.contract_name" class="flex gap-2 text-xs">
+                                    <span class="text-neutral font-medium min-w-24">Contract:</span>
+                                    <RouterLink
+                                        :to="{ name: 'Contract', params: { contract_name: getProcessedEvent(event).additionalData?.blob?.contract_name } }"
+                                        class="text-link font-mono"
+                                    >{{ getProcessedEvent(event).additionalData?.blob?.contract_name }}</RouterLink>
+                                </div>
+                                <div v-if="getProcessedEvent(event).additionalData?.proofTxHash" class="flex gap-2 text-xs">
+                                    <span class="text-neutral font-medium min-w-24">Proof TX:</span>
+                                    <RouterLink
+                                        :to="{ name: 'Transaction', params: { tx_hash: getProcessedEvent(event).additionalData?.proofTxHash } }"
+                                        class="text-link font-mono break-all"
+                                    >{{ getProcessedEvent(event).additionalData?.proofTxHash }}</RouterLink>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Generic event fields -->
+                        <template v-else>
+                            <div class="grid grid-cols-1 gap-1.5">
+                                <div v-if="getProcessedEvent(event).txHash" class="flex gap-2 text-xs">
+                                    <span class="text-neutral font-medium min-w-24">TX Hash:</span>
+                                    <span class="font-mono break-all text-secondary/80">{{ getProcessedEvent(event).txHash }}</span>
+                                </div>
+                                <div v-if="getProcessedEvent(event).contractName" class="flex gap-2 text-xs">
+                                    <span class="text-neutral font-medium min-w-24">Contract:</span>
+                                    <RouterLink
+                                        :to="{ name: 'Contract', params: { contract_name: getProcessedEvent(event).contractName } }"
+                                        class="text-link font-mono"
+                                    >{{ getProcessedEvent(event).contractName }}</RouterLink>
+                                </div>
+                                <div v-if="getProcessedEvent(event).laneId" class="flex gap-2 text-xs">
+                                    <span class="text-neutral font-medium min-w-24">Lane:</span>
+                                    <span class="font-mono">{{ getProcessedEvent(event).laneId }}</span>
+                                </div>
+                                <div v-if="getProcessedEvent(event).error" class="flex gap-2 text-xs">
+                                    <span class="text-neutral font-medium min-w-24">Error:</span>
+                                    <span class="text-red-600">{{ getProcessedEvent(event).error }}</span>
+                                </div>
+                                <div v-if="getProcessedEvent(event).reason" class="flex gap-2 text-xs">
+                                    <span class="text-neutral font-medium min-w-24">Reason:</span>
+                                    <span class="text-secondary/70 italic">{{ getProcessedEvent(event).reason }}</span>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Raw JSON toggle -->
+                        <div class="mt-3">
+                            <button
+                                @click="toggleRawJson(index)"
+                                class="text-[11px] text-secondary/50 hover:text-secondary/80 transition-colors"
+                            >{{ rawJsonEvents.has(index) ? '▲ Hide raw JSON' : '▼ View raw JSON' }}</button>
+                            <div v-if="rawJsonEvents.has(index)" class="mt-2 relative">
+                                <pre class="text-xs bg-secondary/5 p-3 rounded overflow-auto max-h-60 pr-10">{{ JSON.stringify(event.raw ?? event.metadata, null, 2) }}</pre>
+                                <CopyButton :text="JSON.stringify(event.raw ?? event.metadata)" class="absolute top-2 right-2" />
+                            </div>
                         </div>
                     </div>
+                    </template>
                 </div>
             </div>
 

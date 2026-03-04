@@ -13,6 +13,8 @@ export interface ProcessedEvent {
     contractName?: string;
     programId?: string;
     error?: string;
+    txErrorVariant?: string;
+    txErrorFields?: Record<string, any>;
     blobIndex?: number;
     success?: boolean;
     reason?: string;
@@ -163,10 +165,41 @@ export class TxEventProcessor {
     }
 
     private static processTxError(metadata: Record<string, any>): ProcessedEvent {
-        // TxError(&'a TxHash, &'a str)
+        // TxError(&'a TxHash, TxError enum)
+        const txHash = this.extractTxHash(metadata, 0);
+        const errorValue = metadata?.error ?? metadata?.[1];
+
+        let txErrorVariant: string;
+        let txErrorFields: Record<string, any> | undefined;
+
+        if (typeof errorValue === 'string') {
+            txErrorVariant = errorValue;
+        } else if (typeof errorValue === 'object' && errorValue !== null) {
+            if (typeof errorValue.type === 'string') {
+                // Format: { type: "VariantName", field1: val1, ... }
+                txErrorVariant = errorValue.type;
+                const { type: _t, ...rest } = errorValue;
+                if (Object.keys(rest).length > 0) txErrorFields = rest;
+            } else {
+                // Format: { VariantName: { field1: val1, ... } }
+                const keys = Object.keys(errorValue);
+                txErrorVariant = keys[0] ?? 'Unknown';
+                const fieldValue = errorValue[txErrorVariant];
+                if (fieldValue && typeof fieldValue === 'object') txErrorFields = fieldValue;
+            }
+        } else {
+            txErrorVariant = String(errorValue ?? 'Unknown');
+        }
+
+        // NotReadyToSettle and NotNextToSettle are informational, not real errors
+        const isInfo = txErrorVariant === 'NotReadyToSettle' || txErrorVariant === 'NotNextToSettle';
+
         return {
-            txHash: this.extractTxHash(metadata, 0),
-            error: this.extractString(metadata, 1, "error")
+            txHash,
+            txErrorVariant,
+            txErrorFields,
+            error: isInfo ? undefined : txErrorVariant,
+            reason: isInfo ? txErrorVariant : undefined,
         };
     }
 
@@ -300,6 +333,9 @@ export class TxEventProcessor {
         if (value === undefined || value === null) {
             return undefined;
         }
+        if (typeof value === 'object') {
+            return value.type ?? JSON.stringify(value);
+        }
         return value.toString();
     }
 
@@ -371,21 +407,29 @@ export class TxEventProcessor {
     /**
      * Get the status/severity level of the event
      */
-    static getEventStatus(processedEvent: ProcessedEvent): 'success' | 'error' | 'warning' | 'info' {
+    static getEventStatus(processedEvent: ProcessedEvent, eventName?: string): 'success' | 'error' | 'warning' | 'info' {
+        // TxError with informational variants
+        if (processedEvent.txErrorVariant === 'NotReadyToSettle' || processedEvent.txErrorVariant === 'NotNextToSettle') {
+            return 'info';
+        }
+        // TxError with real errors
+        if (processedEvent.txErrorVariant) {
+            return 'error';
+        }
+
         if (processedEvent.success === false || processedEvent.error) {
             return 'error';
         }
-        
-        switch (processedEvent.type) {
+
+        switch (eventName ?? processedEvent.type) {
             case 'RejectedBlobTransaction':
             case 'DuplicateBlobTransaction':
-            case 'TxError':
                 return 'warning';
-            
+
             case 'SettledAsFailed':
             case 'TimedOut':
                 return 'error';
-            
+
             case 'Settled':
             case 'SequencedBlobTransaction':
             case 'SequencedProofTransaction':
@@ -393,7 +437,7 @@ export class TxEventProcessor {
             case 'BlobSettled':
             case 'ContractRegistered':
                 return 'success';
-            
+
             default:
                 return 'info';
         }
