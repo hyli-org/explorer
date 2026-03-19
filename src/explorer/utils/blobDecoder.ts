@@ -9,6 +9,7 @@ import { deserializeFaucetAction } from "@/model/faucet";
 import { deserializeOrderbookAction } from "@/model/orderbook";
 import { deserializeBoardGameAction, deserializeCrashGameAction } from "@/model/orange_trail";
 import { deserializeUtxoStateAction, deserializeUtxoBlob, deserializeSmtInclusionProof } from "@/model/utxo-state";
+import { parseTransaction } from "viem";
 
 export const parseHexToVec = (hex: string): number[] | null => {
     const tokens = hex.match(/[0-9a-f]{2}/gi);
@@ -53,8 +54,35 @@ const formatObject = (obj: any): string => {
         .join("\n");
 };
 
-export const decodeBlobData = (hex: string, contractName: string): string => {
+const decodeEthereumTransaction = (hex: string): string => {
+    const prefixed = hex.startsWith("0x") ? hex as `0x${string}` : `0x${hex}` as `0x${string}`;
+    const tx = parseTransaction(prefixed);
+    const fields: Record<string, unknown> = {
+        type: tx.type,
+        from: tx.from,
+        to: tx.to,
+        value: tx.value !== undefined ? `${tx.value} wei` : undefined,
+        nonce: tx.nonce,
+        gas: tx.gas,
+        data: tx.data,
+    };
+    if ("gasPrice" in tx && tx.gasPrice !== undefined) fields.gasPrice = `${tx.gasPrice} wei`;
+    if ("maxFeePerGas" in tx && tx.maxFeePerGas !== undefined) fields.maxFeePerGas = `${tx.maxFeePerGas} wei`;
+    if ("maxPriorityFeePerGas" in tx && tx.maxPriorityFeePerGas !== undefined)
+        fields.maxPriorityFeePerGas = `${tx.maxPriorityFeePerGas} wei`;
+    if ("chainId" in tx && tx.chainId !== undefined) fields.chainId = tx.chainId;
+    return Object.entries(fields)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join("\n");
+};
+
+export const decodeBlobData = (hex: string, contractName: string, verifier?: string): string => {
     try {
+        if (verifier?.startsWith("reth")) {
+            return decodeEthereumTransaction(hex);
+        }
+
         const data = parseHexToVec(hex);
         if (data === null) return "Invalid hex data";
 
