@@ -9,7 +9,7 @@ import { deserializeFaucetAction } from "@/model/faucet";
 import { deserializeOrderbookAction } from "@/model/orderbook";
 import { deserializeBoardGameAction, deserializeCrashGameAction } from "@/model/orange_trail";
 import { deserializeUtxoStateAction, deserializeUtxoBlob, deserializeSmtInclusionProof } from "@/model/utxo-state";
-import { parseTransaction } from "viem";
+import { keccak256, parseTransaction } from "viem";
 
 export const parseHexToVec = (hex: string): number[] | null => {
     const tokens = hex.match(/[0-9a-f]{2}/gi);
@@ -57,7 +57,9 @@ const formatObject = (obj: any): string => {
 const decodeEthereumTransaction = (hex: string): string => {
     const prefixed = hex.startsWith("0x") ? hex as `0x${string}` : `0x${hex}` as `0x${string}`;
     const tx = parseTransaction(prefixed);
+    const txHash = keccak256(prefixed);
     const fields: Record<string, unknown> = {
+        "Eth transaction hash": txHash,
         type: tx.type,
         from: tx.from,
         to: tx.to,
