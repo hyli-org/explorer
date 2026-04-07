@@ -89,7 +89,7 @@ export class TxEventProcessor {
         return {
             txHash: this.extractTxHash(metadata, 0),
             laneId: this.extractLaneId(metadata, 1),
-            reason: 'Transaction rejected during blob processing',
+            reason: metadata?.reason?.message || 'Transaction rejected during blob processing',
             additionalData: {
                 blobCount: this.extractUsize(metadata, 2, "blob_count"),
                 blobs: this.extractField(metadata, 3, "blobs"),
